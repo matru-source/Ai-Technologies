@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, CheckCircle2, ChevronRight } from 'lucide-react';
 import aitechEmblem from '../assets/aitech-emblem-clean.png';
 
 export default function SolutionGuides() {
   const [selectedGuide, setSelectedGuide] = useState(null);
+
+  useEffect(() => {
+    if (selectedGuide) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') setSelectedGuide(null);
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = prevOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [selectedGuide]);
 
   const guides = [
     {
@@ -279,19 +295,21 @@ export default function SolutionGuides() {
           ))}
         </div>
 
-        {/* Interactive Guide Reader Modal */}
-        {selectedGuide && (
+        {/* Interactive Guide Reader Modal Portal */}
+        {selectedGuide && typeof document !== 'undefined' && createPortal(
           <div
             className="solution-modal-overlay"
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(0, 0, 0, 0.85)',
-              backdropFilter: 'blur(16px)',
-              zIndex: 1000,
+              background: 'rgba(4, 4, 4, 0.92)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              zIndex: 99999,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              overflowY: 'auto',
             }}
             onClick={() => setSelectedGuide(null)}
           >
@@ -303,9 +321,10 @@ export default function SolutionGuides() {
                 maxHeight: '90vh',
                 overflowY: 'auto',
                 background: 'rgba(12, 11, 11, 0.98)',
-                border: '1px solid rgba(200, 255, 61, 0.4)',
-                boxShadow: '0 25px 60px rgba(0,0,0,0.9)',
+                border: '1px solid rgba(200, 255, 61, 0.45)',
+                boxShadow: '0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(200, 255, 61, 0.15)',
                 position: 'relative',
+                borderRadius: '16px',
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -323,6 +342,17 @@ export default function SolutionGuides() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(237, 233, 232, 0.15)',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#c8ff3d';
+                  e.currentTarget.style.color = '#c8ff3d';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(237, 233, 232, 0.15)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
                 }}
               >
                 <X size={20} />
@@ -369,7 +399,8 @@ export default function SolutionGuides() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
