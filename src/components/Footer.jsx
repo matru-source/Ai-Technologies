@@ -47,19 +47,50 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
         className="footer-grid"
       >
         {/* Left Column: Brand Logo + Heading + CTA Button */}
-        <div>
-          <img
-            src={aitechLogo}
-            alt="AI Technologies"
-            style={{
-              height: '44px',
-              width: 'auto',
-              marginBottom: '28px',
-              display: 'block',
-              objectFit: 'contain',
-            }}
-          />
+        <div className="footer-brand-col">
+          <div className="footer-brand-header">
+            <img
+              src={aitechLogo}
+              alt="AI Technologies"
+              className="footer-brand-logo"
+              style={{
+                height: '44px',
+                width: 'auto',
+                marginBottom: '28px',
+                display: 'block',
+                objectFit: 'contain',
+              }}
+            />
+            <a
+              href="#contact"
+              onClick={(e) => {
+                e.preventDefault();
+                if (onOpenContact) onOpenContact();
+              }}
+              className="footer-cta-mobile-btn"
+              style={{
+                display: 'none',
+                alignItems: 'center',
+                gap: '5px',
+                backgroundColor: '#c8ff3d',
+                color: '#000000',
+                fontWeight: 600,
+                fontSize: '11.5px',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#d6ff66')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#c8ff3d')}
+            >
+              Start a Project <ArrowUpRight size={12} />
+            </a>
+          </div>
+
           <h2
+            className="footer-brand-title"
             style={{
               fontFamily: '"Geist", sans-serif',
               fontSize: 'clamp(36px, 4.4vw, 56px)',
@@ -71,8 +102,8 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             }}
           >
             Building Digital
-            <br />
-            Solutions
+            <br className="footer-title-break" />
+            {' '}Solutions
             <br />
             <span style={{ color: '#c8ff3d' }}>for Tomorrow</span>
           </h2>
@@ -83,6 +114,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
               e.preventDefault();
               if (onOpenContact) onOpenContact();
             }}
+            className="footer-cta-desktop-btn"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -106,6 +138,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
 
           {/* Official Company Details */}
           <div
+            className="footer-contact-details"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -116,22 +149,24 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
               maxWidth: '360px',
             }}
           >
-            <div>
-              <strong style={{ color: '#ffffff' }}>Headquarters:</strong><br />
-              Saheed Nagar, near BMC Bhawani Mall,<br />
-              Bhubaneswar, Odisha 751007
+            <div className="footer-contact-hq">
+              <strong style={{ color: '#ffffff' }}>Headquarters:</strong><br className="footer-hq-break" />
+              {' '}Saheed Nagar, near BMC Bhawani Mall, Bhubaneswar, Odisha 751007
             </div>
-            <div>
-              <strong style={{ color: '#ffffff' }}>Phone:</strong>{' '}
-              <a href="tel:+919777221665" style={{ color: '#c8ff3d', textDecoration: 'none' }}>
-                +91 9777221665
-              </a>
-            </div>
-            <div>
-              <strong style={{ color: '#ffffff' }}>Email:</strong>{' '}
-              <a href="mailto:support@aitechnologies.com" style={{ color: '#c8ff3d', textDecoration: 'none' }}>
-                support@aitechnologies.com
-              </a>
+            <div className="footer-contact-row">
+              <div>
+                <strong style={{ color: '#ffffff' }}>Phone:</strong>{' '}
+                <a href="tel:+919777221665" style={{ color: '#c8ff3d', textDecoration: 'none' }}>
+                  +91 9777221665
+                </a>
+              </div>
+              <span className="footer-contact-sep" style={{ display: 'none', color: 'rgba(237, 233, 232, 0.3)' }}>•</span>
+              <div>
+                <strong style={{ color: '#ffffff' }}>Email:</strong>{' '}
+                <a href="mailto:support@aitechnologies.com" style={{ color: '#c8ff3d', textDecoration: 'none' }}>
+                  support@aitechnologies.com
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -148,6 +183,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
           {/* Services */}
           <div className="footer-col-services">
             <div
+              className="footer-col-header"
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
@@ -159,7 +195,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             >
               SERVICES
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="footer-links-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { label: 'Website development', href: '#platform' },
                 { label: 'Mobile applications', href: '#services' },
@@ -192,6 +228,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
           {/* Explore */}
           <div className="footer-col-explore">
             <div
+              className="footer-col-header"
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
@@ -203,7 +240,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             >
               EXPLORE & LEGAL
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="footer-links-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { label: 'About AI Technologies', href: '#about-agency' },
                 { label: 'Our approach', href: '#how-we-work' },
@@ -243,6 +280,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
           {/* Start a Project */}
           <div className="footer-col-start">
             <div
+              className="footer-col-header"
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
@@ -254,7 +292,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             >
               START A PROJECT
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="footer-links-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 {
                   label: 'Tell us your idea',
@@ -304,6 +342,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
         }}
       >
         <div
+          className="footer-bottom-copy"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -323,7 +362,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
           <span>© 2026 AI TECHNOLOGIES • IDEAS | INNOVATION | IMPACT</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
+        <div className="footer-bottom-links" style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
           <a
             href="mailto:support@aitechnologies.com"
             style={{
@@ -373,6 +412,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
         </div>
 
         <div
+          className="footer-bottom-slogan"
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
@@ -391,15 +431,16 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
         }
         @media (max-width: 900px) {
           .footer-container {
-            padding: 50px 24px 36px;
+            padding: 40px 24px 30px;
           }
           .footer-grid {
             grid-template-columns: 1fr !important;
-            gap: 40px !important;
+            gap: 32px !important;
+            padding-bottom: 36px !important;
           }
           .footer-links-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 36px 20px !important;
+            gap: 28px 20px !important;
           }
           .footer-col-start {
             grid-column: 1 / -1 !important;
@@ -407,21 +448,120 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
         }
         @media (max-width: 600px) {
           .footer-container {
-            padding: 36px 16px 28px;
+            min-height: 100svh;
+            min-height: 100dvh;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            padding: 20px 16px 14px !important;
+            box-sizing: border-box !important;
+          }
+          .footer-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 14px !important;
+            padding-bottom: 0 !important;
+            flex: 1 !important;
+            justify-content: flex-start !important;
+          }
+          .footer-brand-col {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+          }
+          .footer-brand-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 4px !important;
+          }
+          .footer-brand-logo {
+            height: 26px !important;
+            margin-bottom: 0 !important;
+          }
+          .footer-cta-mobile-btn {
+            display: inline-flex !important;
+          }
+          .footer-cta-desktop-btn {
+            display: none !important;
+          }
+          .footer-brand-title {
+            font-size: clamp(20px, 5.2vw, 24px) !important;
+            line-height: 1.15 !important;
+            margin: 0 !important;
+          }
+          .footer-title-break {
+            display: none !important;
+          }
+          .footer-contact-details {
+            font-size: 11.5px !important;
+            line-height: 1.35 !important;
+            gap: 4px !important;
+            margin-bottom: 4px !important;
+          }
+          .footer-contact-hq {
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+          }
+          .footer-hq-break {
+            display: none !important;
+          }
+          .footer-contact-row {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+            font-size: 11px !important;
+          }
+          .footer-contact-sep {
+            display: inline !important;
           }
           .footer-links-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 28px 16px !important;
+            gap: 16px 12px !important;
+            margin-top: 4px !important;
+          }
+          .footer-col-header {
+            font-size: 10px !important;
+            margin-bottom: 8px !important;
+            letter-spacing: 0.08em !important;
+          }
+          .footer-links-list {
+            gap: 6px !important;
+          }
+          .footer-links-list a {
+            font-size: 12px !important;
+            line-height: 1.25 !important;
           }
           .footer-col-start {
-            grid-column: 1 / -1 !important;
-            padding-top: 14px;
-            border-top: 1px solid rgba(237, 233, 232, 0.08);
+            display: none !important;
           }
           .footer-bottom-bar {
+            border-top: 1px solid rgba(237, 233, 232, 0.08) !important;
+            padding-top: 10px !important;
+            margin-top: 10px !important;
             flex-direction: column !important;
             align-items: flex-start !important;
-            gap: 12px !important;
+            gap: 6px !important;
+          }
+          .footer-bottom-copy {
+            font-size: 9.5px !important;
+            gap: 6px !important;
+            letter-spacing: 0.04em !important;
+          }
+          .footer-bottom-copy img {
+            width: 13px !important;
+            height: 13px !important;
+          }
+          .footer-bottom-links {
+            gap: 10px !important;
+            font-size: 11px !important;
+          }
+          .footer-bottom-links a {
+            font-size: 11px !important;
+          }
+          .footer-bottom-slogan {
+            display: none !important;
           }
         }
       `}</style>
