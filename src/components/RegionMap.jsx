@@ -44,6 +44,20 @@ export default function RegionMap({
     });
   };
 
+  // Prevent hover card from triggering and obstructing the map on mobile/touch devices
+  const handleHubEnter = (hubId) => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth <= 768 || window.matchMedia('(hover: none)').matches) {
+        return;
+      }
+    }
+    setHoveredHub(hubId);
+  };
+
+  const handleTouchStart = () => {
+    setHoveredHub(null);
+  };
+
   return (
     <div
       className="proper-map-wrapper"
@@ -154,6 +168,7 @@ export default function RegionMap({
           preserveAspectRatio="xMidYMid meet"
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setMouseCoord(null)}
+          onTouchStart={handleTouchStart}
           style={{
             position: 'absolute',
             inset: 0,
@@ -235,8 +250,9 @@ export default function RegionMap({
                 key={regId}
                 d={pathD}
                 onClick={() => onSelectRegion && onSelectRegion(regId)}
-                onMouseEnter={() => setHoveredHub(regId)}
+                onMouseEnter={() => handleHubEnter(regId)}
                 onMouseLeave={() => setHoveredHub(null)}
+                onTouchStart={handleTouchStart}
                 style={{
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -298,8 +314,9 @@ export default function RegionMap({
                 key={hub.id}
                 transform={`translate(${hub.x}, ${hub.y})`}
                 onClick={() => onSelectRegion && onSelectRegion(hub.id)}
-                onMouseEnter={() => setHoveredHub(hub.id)}
+                onMouseEnter={() => handleHubEnter(hub.id)}
                 onMouseLeave={() => setHoveredHub(null)}
+                onTouchStart={handleTouchStart}
                 style={{ cursor: 'pointer' }}
               >
                 {/* Outer radar pulse wave */}
@@ -363,17 +380,18 @@ export default function RegionMap({
           })}
         </svg>
 
-        {/* 5. Tooltip on Hover */}
+        {/* 5. Tooltip on Hover (Desktop Hover Only, hidden on Mobile) */}
         {hoveredHub && (() => {
           const hub = MAP_HUBS.find((h) => h.id === hoveredHub);
           if (!hub) return null;
 
-          // Convert viewBox coordinate percentage to CSS positioning
-          const leftPct = (hub.x / 1000) * 100;
+          // Convert viewBox coordinate percentage to CSS positioning with safe horizontal clamping
+          const leftPct = Math.min(84, Math.max(16, (hub.x / 1000) * 100));
           const topPct = (hub.y / 507) * 100;
 
           return (
             <div
+              className="map-hover-tooltip"
               style={{
                 position: 'absolute',
                 left: `${leftPct}%`,
@@ -548,6 +566,14 @@ export default function RegionMap({
         }
         .proper-map-wrapper path {
           transition: fill 0.25s ease, stroke 0.25s ease;
+        }
+        @media (max-width: 768px), (hover: none), (pointer: coarse) {
+          .map-hover-tooltip {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+          }
         }
       `}</style>
     </div>
