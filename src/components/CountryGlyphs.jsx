@@ -51,15 +51,15 @@ export default function CountryGlyph({ code, name, flag, latency, _reach, isActi
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '14px',
-        padding: '16px 18px',
         background: isActive ? 'rgba(200, 255, 61, 0.08)' : 'rgba(12, 11, 11, 0.75)',
         border: `1px solid ${isActive ? '#c8ff3d' : 'var(--border-subtle)'}`,
         boxShadow: isActive ? '0 0 16px rgba(200, 255, 61, 0.18)' : 'none',
         borderRadius: '8px',
         transition: 'all 0.2s',
+        minWidth: 0,
+        overflow: 'hidden',
       }}
-      className="has-brackets"
+      className="has-brackets country-glyph-card"
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = 'var(--accent-neon)';
         e.currentTarget.style.transform = 'translateY(-2px)';
@@ -71,21 +71,59 @@ export default function CountryGlyph({ code, name, flag, latency, _reach, isActi
     >
       <canvas
         ref={canvasRef}
+        className="country-glyph-canvas"
         style={{
-          width: '44px',
-          height: '44px',
           flexShrink: 0,
         }}
       />
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-          <span style={{ fontSize: '15px' }}>{flag}</span>
-          <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{name}</span>
+      <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px', minWidth: 0 }}>
+          <span style={{ fontSize: '14px', flexShrink: 0 }}>{flag}</span>
+          <span className="country-glyph-name" style={{ fontWeight: 600, color: '#fff' }}>{name}</span>
         </div>
-        <div className="mono" style={{ fontSize: '11px', color: 'var(--accent-neon)' }}>
+        <div className="mono country-glyph-sub" style={{ color: 'var(--accent-neon)' }}>
           {code} &bull; {latency}
         </div>
       </div>
+
+      <style>{`
+        .country-glyph-card {
+          padding: 16px 18px;
+          gap: 14px;
+        }
+        .country-glyph-canvas {
+          width: 44px;
+          height: 44px;
+        }
+        .country-glyph-name {
+          font-size: 14px;
+        }
+        .country-glyph-sub {
+          font-size: 11px;
+        }
+        @media (max-width: 600px) {
+          .country-glyph-card {
+            padding: 10px 8px !important;
+            gap: 7px !important;
+          }
+          .country-glyph-canvas {
+            width: 28px !important;
+            height: 28px !important;
+          }
+          .country-glyph-name {
+            font-size: 11px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .country-glyph-sub {
+            font-size: 9px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      `}</style>
     </div>
   );
 }
