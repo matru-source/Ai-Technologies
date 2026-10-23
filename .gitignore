@@ -35,6 +35,6 @@ contact_live.html
 features_live.html
 framer_*.js
 extracted_*.js
-bracket_script_*.js
-assets/
+/assets/
+!src/assets/
 

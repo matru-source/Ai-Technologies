@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import aitechEmblem from '../assets/aitech-emblem-clean.png';
+import processDiscoverImg from '../assets/process-discover.jpg';
+import processDesignImg from '../assets/process-design.jpg';
+import processDevelopImg from '../assets/process-develop.jpg';
 
 export default function Process() {
   const [hoveredStep, setHoveredStep] = useState(null);
@@ -11,6 +14,8 @@ export default function Process() {
       kicker: 'Understand your goals',
       title: 'Discover',
       desc: 'Discuss your users, requirements and the problem you want to solve.',
+      img: processDiscoverImg,
+      imgAlt: 'Software project discovery and requirements planning',
       footerTag: 'Scope before estimates',
     },
     {
@@ -18,6 +23,8 @@ export default function Process() {
       kicker: 'Shape the experience',
       title: 'Design',
       desc: 'Map the user journey and plan the application before development.',
+      img: processDesignImg,
+      imgAlt: 'Custom UI/UX design systems and wireframing',
       footerTag: 'Built around your needs',
     },
     {
@@ -25,6 +32,8 @@ export default function Process() {
       kicker: 'Bring it to life',
       title: 'Develop',
       desc: 'Build, test and refine your website, mobile app or custom software.',
+      img: processDevelopImg,
+      imgAlt: 'Full-stack software engineering and cloud deployment',
       footerTag: 'Launch and scale your project',
     },
   ];
@@ -178,13 +187,14 @@ export default function Process() {
                   </div>
 
                   {/* Title */}
+                  {/* Title */}
                   <h3
                     style={{
-                      fontSize: '32px',
+                      fontSize: '30px',
                       fontWeight: 700,
                       color: '#ffffff',
                       letterSpacing: '-0.03em',
-                      marginBottom: '14px',
+                      marginBottom: '12px',
                     }}
                   >
                     {step.title}
@@ -196,10 +206,50 @@ export default function Process() {
                       fontSize: '15px',
                       lineHeight: 1.6,
                       color: 'rgba(237, 233, 232, 0.7)',
+                      marginBottom: '20px',
                     }}
                   >
                     {step.desc}
                   </p>
+
+                  {/* Relatable Card Visual Preview */}
+                  <div
+                    style={{
+                      position: 'relative',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: `1px solid ${isHovered ? 'rgba(200, 255, 61, 0.3)' : 'rgba(237, 233, 232, 0.08)'}`,
+                      background: '#0a0a0a',
+                      aspectRatio: '16 / 9',
+                      transition: 'all 0.3s ease',
+                      boxShadow: isHovered
+                        ? '0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(200, 255, 61, 0.1)'
+                        : '0 4px 14px rgba(0, 0, 0, 0.35)',
+                    }}
+                  >
+                    <img
+                      src={step.img}
+                      alt={step.imgAlt}
+                      loading="lazy"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                        transition: 'transform 0.4s ease, filter 0.3s ease',
+                        transform: isHovered ? 'scale(1.03)' : 'scale(1)',
+                        filter: isHovered ? 'contrast(1.05) brightness(1.02)' : 'contrast(1) brightness(0.95)',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 65%, rgba(10,10,10,0.45) 100%)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Footer Tag */}
@@ -208,9 +258,9 @@ export default function Process() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    paddingTop: '20px',
+                    paddingTop: '18px',
                     borderTop: '1px solid rgba(237, 233, 232, 0.08)',
-                    marginTop: '28px',
+                    marginTop: '20px',
                   }}
                 >
                   <span
@@ -338,11 +388,10 @@ export default function Process() {
           padding: 0 36px;
         }
         .process-steps-grid {
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         }
         .process-card {
-          padding: 36px 30px;
-          min-height: 340px;
+          padding: 30px 24px;
         }
         .process-status-bar {
           padding: 20px 28px;
@@ -358,8 +407,7 @@ export default function Process() {
             grid-template-columns: 1fr;
           }
           .process-card {
-            padding: 28px 22px;
-            min-height: auto;
+            padding: 24px 20px;
           }
         }
         @media (max-width: 600px) {
