@@ -1,246 +1,555 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-const ACTIVE_REGIONS = [
-  { id: 'usa', code: 'USA', name: 'United States', lat: 39, lng: -98, reach: 24, latency: '16ms', status: 'Optimal' },
-  { id: 'uk', code: 'UK', name: 'United Kingdom', lat: 54, lng: -2.5, reach: 10, latency: '22ms', status: 'Optimal' },
-  { id: 'eu', code: 'EU', name: 'European Union', lat: 49, lng: 10, reach: 16, latency: '26ms', status: 'Optimal' },
-];
-
-const SOON_REGIONS = [
-  { id: 'in', code: 'IN', name: 'India', lat: 22.5, lng: 78.9, latency: '34ms', status: 'Deploying' },
-  { id: 'ng', code: 'NG', name: 'Nigeria', lat: 9.1, lng: 8.7, latency: '58ms', status: 'Deploying' },
-  { id: 'ke', code: 'KE', name: 'Kenya', lat: 0.2, lng: 37.9, latency: '52ms', status: 'Deploying' },
-  { id: 'mx', code: 'MX', name: 'Mexico', lat: 23.6, lng: -102.5, latency: '38ms', status: 'Deploying' },
-  { id: 'br', code: 'BR', name: 'Brazil', lat: -14.2, lng: -51.9, latency: '44ms', status: 'Deploying' },
-  { id: 'pk', code: 'PK', name: 'Pakistan', lat: 30.3, lng: 69.3, latency: '40ms', status: 'Deploying' },
-  { id: 'sa', code: 'SA', name: 'Saudi Arabia', lat: 23.8, lng: 45.0, latency: '32ms', status: 'Deploying' },
-  { id: 'ae', code: 'AE', name: 'United Arab Emirates', lat: 23.4, lng: 53.8, latency: '29ms', status: 'Deploying' },
-];
+import React, { useState } from 'react';
+import {
+  WORLD_VIEWBOX,
+  WORLD_LANDMASS_PATH,
+  REGION_SVG_PATHS,
+  MAP_HUBS,
+} from './worldMapData';
 
 export default function RegionMap({
-  dotSize = 2.2,
-  pulseColor = 'rgb(200, 255, 61)',
-  shellColor = 'rgb(237, 233, 232)',
+  activeRegion = 'us',
+  onSelectRegion,
+  pulseColor = '#c8ff3d',
 }) {
-  const containerRef = useRef(null);
-  const canvasRef = useRef(null);
-  const [activeTooltip, setActiveTooltip] = useState(null);
-  const [nodePositions, setNodePositions] = useState([]);
+  const [hoveredHub, setHoveredHub] = useState(null);
+  const [mouseCoord, setMouseCoord] = useState(null);
 
-  // Simple Equal Earth / Equirectangular projection mapping [lng, lat] -> [x, y]
-  const project = (lng, lat, w, h) => {
-    const x = ((lng + 180) / 360) * w;
-    const y = ((90 - lat) / 180) * h;
-    return [x, y];
+  // HQ location is India
+  const hqNode = MAP_HUBS.find((h) => h.isHQ) || MAP_HUBS[0];
+
+  // Helper to generate elegant curved Bezier arcs between HQ and client hubs
+  const createArc = (from, to) => {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const dist = Math.hypot(dx, dy);
+    // Elevated control point for natural orbital trajectory
+    const mx = (from.x + to.x) / 2;
+    const my = (from.y + to.y) / 2;
+    const lift = Math.min(65, Math.max(22, dist * 0.16));
+    const cx = mx;
+    const cy = my - lift;
+    return `M ${from.x} ${from.y} Q ${cx} ${cy} ${to.x} ${to.y}`;
   };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    let width = container.offsetWidth || 800;
-    let height = Math.round(width * 0.48);
-
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    // Calculate node coordinates in canvas space
-    const nodes = [
-      ...ACTIVE_REGIONS.map((r) => {
-        const [x, y] = project(r.lng, r.lat, width, height);
-        const [rx] = project(r.lng + r.reach, r.lat, width, height);
-        return { ...r, x, y, reachPx: Math.abs(rx - x), active: true };
-      }),
-      ...SOON_REGIONS.map((r) => {
-        const [x, y] = project(r.lng, r.lat, width, height);
-        return { ...r, x, y, reachPx: 12, active: false };
-      }),
-    ];
-    setNodePositions(nodes);
-
-    // Procedural Landmass dot matrix renderer (renders continents cleanly without external heavy bundle)
-    // Continent rough bounding polygons for dot density
-    const landPolys = [
-      // North America
-      { minX: -168, maxX: -52, minY: 15, maxY: 72 },
-      // South America
-      { minX: -82, maxX: -34, minY: -56, maxY: 12 },
-      // Europe
-      { minX: -10, maxX: 40, minY: 36, maxY: 71 },
-      // Africa
-      { minX: -18, maxX: 52, minY: -35, maxY: 37 },
-      // Asia
-      { minX: 40, maxX: 145, minY: 5, maxY: 75 },
-      // Australia
-      { minX: 112, maxX: 154, minY: -44, maxY: -10 },
-      // UK / Japan / Islands
-      { minX: -11, maxX: 2, minY: 50, maxY: 60 },
-      { minX: 128, maxX: 146, minY: 30, maxY: 46 },
-    ];
-
-    const step = Math.max(5, Math.round(width / 140));
-
-    ctx.clearRect(0, 0, width, height);
-
-    for (let py = 10; py < height - 10; py += step) {
-      for (let px = 10; px < width - 10; px += step) {
-        // Convert screen pixel to [lng, lat]
-        const lng = (px / width) * 360 - 180;
-        const lat = 90 - (py / height) * 180;
-
-        // Check if inside any continent rough box
-        const isLand = landPolys.some(
-          (b) => lng >= b.minX && lng <= b.maxX && lat >= b.minY && lat <= b.maxY
-        );
-
-        if (!isLand) continue;
-
-        // Check proximity to active nodes
-        const isNearActive = nodes.some(
-          (n) => n.active && (px - n.x) ** 2 + (py - n.y) ** 2 < n.reachPx ** 2
-        );
-
-        ctx.fillStyle = isNearActive ? pulseColor : 'rgba(237, 233, 232, 0.16)';
-        ctx.globalAlpha = isNearActive ? 0.9 : 0.45;
-        const s = (isNearActive ? 1.4 : 1) * dotSize;
-        ctx.fillRect(px - s / 2, py - s / 2, s, s);
-      }
-    }
-
-    ctx.globalAlpha = 1;
-  }, [dotSize, pulseColor, shellColor]);
+  // Convert SVG coordinates to approximate lat/lng for futuristic HUD readout
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const svgX = ((e.clientX - rect.left) / rect.width) * 1000;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 507;
+    const approxLng = Math.round((svgX / 1000) * 360 - 180);
+    const approxLat = Math.round(90 - (svgY / 507) * 180);
+    setMouseCoord({
+      lat: `${Math.abs(approxLat)}°${approxLat >= 0 ? 'N' : 'S'}`,
+      lng: `${Math.abs(approxLng)}°${approxLng >= 0 ? 'E' : 'W'}`,
+    });
+  };
 
   return (
     <div
-      ref={containerRef}
+      className="proper-map-wrapper"
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '340px',
-        background: 'radial-gradient(ellipse at center, rgba(14, 13, 13, 0.9) 0%, rgba(8, 7, 7, 0.98) 100%)',
-        border: '1px solid var(--border-medium)',
-        borderRadius: '12px',
+        background: 'radial-gradient(120% 90% at 50% 20%, #111411 0%, #080808 100%)',
+        border: '1px solid rgba(237, 233, 232, 0.12)',
+        borderRadius: '14px',
         overflow: 'hidden',
+        boxShadow: 'inset 0 0 60px rgba(0, 0, 0, 0.75)',
       }}
     >
-      <canvas
-        ref={canvasRef}
+      {/* Top Map HUD Bar */}
+      <div
         style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          display: 'block',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '14px 20px',
+          background: 'rgba(10, 10, 10, 0.7)',
+          borderBottom: '1px solid rgba(237, 233, 232, 0.08)',
         }}
-      />
-
-      {/* Interactive Node Markers with Pulsing Ripples */}
-      {nodePositions.map((node) => {
-        const isHovered = activeTooltip?.id === node.id;
-        return (
-          <div
-            key={node.id}
-            onMouseEnter={() => setActiveTooltip(node)}
-            onMouseLeave={() => setActiveTooltip(null)}
-            style={{
-              position: 'absolute',
-              left: `${node.x}px`,
-              top: `${node.y}px`,
-              transform: 'translate(-50%, -50%)',
-              zIndex: isHovered ? 20 : node.active ? 10 : 5,
-              cursor: 'pointer',
-              padding: '6px',
-            }}
-          >
-            {/* Animated Ripple for active nodes */}
-            {node.active && (
-              <span
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  width: '16px',
-                  height: '16px',
-                  marginLeft: '-8px',
-                  marginTop: '-8px',
-                  borderRadius: '50%',
-                  border: `1.5px solid ${pulseColor}`,
-                  animation: 'pulseGlow 2s infinite ease-out',
-                }}
-              />
-            )}
-
-            {/* Core Node Marker */}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span
               style={{
-                display: 'block',
-                width: node.active ? '10px' : '7px',
-                height: node.active ? '10px' : '7px',
-                borderRadius: '2px',
-                background: node.active ? pulseColor : 'rgba(237, 233, 232, 0.55)',
-                boxShadow: node.active ? `0 0 12px ${pulseColor}` : 'none',
-                position: 'relative',
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: pulseColor,
+                boxShadow: `0 0 8px ${pulseColor}`,
               }}
             />
-
-            {/* Static Code Tag */}
-            {!isHovered && (
-              <div
-                className="mono"
-                style={{
-                  position: 'absolute',
-                  left: '14px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  fontSize: '10px',
-                  color: node.active ? pulseColor : 'var(--text-muted)',
-                  background: 'rgba(0, 0, 0, 0.85)',
-                  padding: '1px 5px',
-                  borderRadius: '3px',
-                  whiteSpace: 'nowrap',
-                  pointerEvents: 'none',
-                }}
-              >
-                {node.code}
-              </div>
-            )}
-
-            {/* Tooltip on Hover */}
-            {isHovered && (
-              <div
-                className="mono"
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  bottom: '20px',
-                  transform: 'translateX(-50%)',
-                  whiteSpace: 'nowrap',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  background: 'rgba(10, 9, 9, 0.95)',
-                  border: `1px solid ${node.active ? pulseColor : 'var(--border-medium)'}`,
-                  boxShadow: '0 10px 24px rgba(0, 0, 0, 0.8)',
-                  pointerEvents: 'none',
-                  zIndex: 30,
-                }}
-              >
-                <div style={{ color: '#fff', fontWeight: 600, fontSize: '12px', marginBottom: '2px' }}>
-                  {node.name}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  Latency: <strong style={{ color: pulseColor }}>{node.latency}</strong> &bull; Status:{' '}
-                  <span style={{ color: node.active ? pulseColor : '#3df3ff' }}>{node.status}</span>
-                </div>
-              </div>
-            )}
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                letterSpacing: '0.08em',
+                color: pulseColor,
+                textTransform: 'uppercase',
+                fontWeight: 600,
+              }}
+            >
+              HQ: Saheed Nagar, Bhubaneswar (IST)
+            </span>
           </div>
-        );
-      })}
+
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'rgba(237, 233, 232, 0.45)',
+            }}
+          >
+            &bull; 10 Global Delivery Hubs Active
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {mouseCoord && (
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: 'rgba(237, 233, 232, 0.55)',
+                background: 'rgba(255, 255, 255, 0.04)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                border: '1px solid rgba(237, 233, 232, 0.08)',
+              }}
+            >
+              {mouseCoord.lat}, {mouseCoord.lng}
+            </span>
+          )}
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              color: '#3df3ff',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              background: 'rgba(61, 243, 255, 0.08)',
+              padding: '3px 8px',
+              borderRadius: '4px',
+              border: '1px solid rgba(61, 243, 255, 0.25)',
+            }}
+          >
+            24/7 Agile Sync
+          </span>
+        </div>
+      </div>
+
+      {/* SVG True Geographic World Map */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          paddingBottom: '50.7%', // Preserves 1000:507 Robinson aspect ratio
+          minHeight: '340px',
+        }}
+      >
+        <svg
+          viewBox={WORLD_VIEWBOX}
+          preserveAspectRatio="xMidYMid meet"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setMouseCoord(null)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            display: 'block',
+          }}
+        >
+          <defs>
+            {/* Glowing filter for active nodes */}
+            <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Glowing filter for country selection */}
+            <filter id="country-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#c8ff3d" floodOpacity="0.4" />
+            </filter>
+
+            {/* Linear gradient for beam flow */}
+            <linearGradient id="arc-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#c8ff3d" stopOpacity="0.8" />
+              <stop offset="50%" stopColor="#3df3ff" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#c8ff3d" stopOpacity="0.8" />
+            </linearGradient>
+          </defs>
+
+          {/* Graticule Grid Lines (Latitude & Longitude) */}
+          <g opacity="0.12" stroke="rgba(237, 233, 232, 0.4)" strokeWidth="0.5" strokeDasharray="3 4">
+            {/* Parallels (Latitude) */}
+            <line x1="50" y1="80" x2="950" y2="80" />
+            <line x1="40" y1="140" x2="960" y2="140" />
+            <line x1="20" y1="200" x2="980" y2="200" />
+            {/* Equator */}
+            <line
+              x1="0"
+              y1="253.5"
+              x2="1000"
+              y2="253.5"
+              stroke="#c8ff3d"
+              strokeWidth="0.8"
+              opacity="0.3"
+              strokeDasharray="4 4"
+            />
+            <line x1="20" y1="310" x2="980" y2="310" />
+            <line x1="40" y1="380" x2="960" y2="380" />
+            <line x1="60" y1="440" x2="940" y2="440" />
+
+            {/* Meridians (Longitude) */}
+            <line x1="166" y1="40" x2="166" y2="470" />
+            <line x1="333" y1="30" x2="333" y2="480" />
+            <line x1="500" y1="20" x2="500" y2="490" stroke="rgba(237, 233, 232, 0.6)" />
+            <line x1="666" y1="30" x2="666" y2="480" />
+            <line x1="833" y1="40" x2="833" y2="470" />
+          </g>
+
+          {/* 1. Global World Landmass Background Path */}
+          <path
+            d={WORLD_LANDMASS_PATH}
+            fill="rgba(237, 233, 232, 0.065)"
+            stroke="rgba(237, 233, 232, 0.16)"
+            strokeWidth="0.75"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+
+          {/* 2. Highlighted Active Delivery Hub Countries */}
+          {Object.entries(REGION_SVG_PATHS).map(([regId, pathD]) => {
+            if (!pathD) return null;
+            const isSelected = activeRegion === regId;
+            const isHovered = hoveredHub === regId;
+
+            return (
+              <path
+                key={regId}
+                d={pathD}
+                onClick={() => onSelectRegion && onSelectRegion(regId)}
+                onMouseEnter={() => setHoveredHub(regId)}
+                onMouseLeave={() => setHoveredHub(null)}
+                style={{
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                }}
+                fill={
+                  isSelected
+                    ? 'rgba(200, 255, 61, 0.28)'
+                    : isHovered
+                    ? 'rgba(200, 255, 61, 0.18)'
+                    : 'rgba(200, 255, 61, 0.08)'
+                }
+                stroke={isSelected ? '#c8ff3d' : isHovered ? '#c8ff3d' : 'rgba(200, 255, 61, 0.4)'}
+                strokeWidth={isSelected ? 1.5 : isHovered ? 1.2 : 0.8}
+                filter={isSelected ? 'url(#country-glow)' : 'none'}
+              />
+            );
+          })}
+
+          {/* 3. Cyber Collaboration Arcs Radiating from India HQ */}
+          {MAP_HUBS.filter((h) => !h.isHQ).map((hub) => {
+            const arcD = createArc(hqNode, hub);
+            const isHighlighted = activeRegion === hub.id || hoveredHub === hub.id;
+
+            return (
+              <g key={`arc-${hub.id}`}>
+                {/* Background static arc */}
+                <path
+                  d={arcD}
+                  fill="none"
+                  stroke={isHighlighted ? '#c8ff3d' : 'rgba(200, 255, 61, 0.25)'}
+                  strokeWidth={isHighlighted ? 1.8 : 1}
+                  opacity={isHighlighted ? 0.95 : 0.4}
+                  strokeLinecap="round"
+                  style={{ transition: 'all 0.3s ease' }}
+                />
+
+                {/* Animated beam pulse flowing along arc */}
+                <path
+                  d={arcD}
+                  fill="none"
+                  stroke="url(#arc-gradient)"
+                  strokeWidth={isHighlighted ? 2.4 : 1.6}
+                  strokeDasharray="8 16"
+                  className="beam-animation"
+                  opacity={isHighlighted ? 1 : 0.75}
+                  strokeLinecap="round"
+                />
+              </g>
+            );
+          })}
+
+          {/* 4. Delivery Hub Markers (Interactive Beacons) */}
+          {MAP_HUBS.map((hub) => {
+            const isSelected = activeRegion === hub.id;
+            const isHovered = hoveredHub === hub.id;
+
+            return (
+              <g
+                key={hub.id}
+                transform={`translate(${hub.x}, ${hub.y})`}
+                onClick={() => onSelectRegion && onSelectRegion(hub.id)}
+                onMouseEnter={() => setHoveredHub(hub.id)}
+                onMouseLeave={() => setHoveredHub(null)}
+                style={{ cursor: 'pointer' }}
+              >
+                {/* Outer radar pulse wave */}
+                <circle
+                  r={hub.isHQ ? 16 : 12}
+                  fill="none"
+                  stroke={hub.isHQ ? '#c8ff3d' : isSelected ? '#c8ff3d' : 'rgba(200, 255, 61, 0.6)'}
+                  strokeWidth={hub.isHQ ? 1.5 : 1}
+                  className="radar-pulse"
+                  opacity="0.6"
+                />
+
+                {/* Secondary wave for Global HQ */}
+                {hub.isHQ && (
+                  <circle
+                    r={24}
+                    fill="none"
+                    stroke="#c8ff3d"
+                    strokeWidth="0.8"
+                    className="radar-pulse-secondary"
+                    opacity="0.4"
+                  />
+                )}
+
+                {/* Solid beacon halo */}
+                <circle
+                  r={hub.isHQ ? 7 : isSelected ? 5.5 : 4}
+                  fill={hub.isHQ ? '#c8ff3d' : isSelected ? '#c8ff3d' : 'rgba(200, 255, 61, 0.85)'}
+                  filter="url(#neon-glow)"
+                />
+
+                {/* Inner white core */}
+                <circle r={hub.isHQ ? 3 : 2} fill="#ffffff" />
+
+                {/* City / Hub Code Label Chip */}
+                <g transform="translate(10, -4)">
+                  <rect
+                    x="-2"
+                    y="-10"
+                    width={hub.isHQ ? 54 : 32}
+                    height="14"
+                    rx="3"
+                    fill="rgba(0, 0, 0, 0.88)"
+                    stroke={isSelected || hub.isHQ ? '#c8ff3d' : 'rgba(237, 233, 232, 0.25)'}
+                    strokeWidth="0.8"
+                  />
+                  <text
+                    x="2"
+                    y="0"
+                    fill={isSelected || hub.isHQ ? '#c8ff3d' : 'rgba(237, 233, 232, 0.85)'}
+                    fontSize={hub.isHQ ? '8.5' : '8'}
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                    letterSpacing="0.05em"
+                  >
+                    {hub.isHQ ? 'IN • HQ' : hub.code}
+                  </text>
+                </g>
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* 5. Tooltip on Hover */}
+        {hoveredHub && (() => {
+          const hub = MAP_HUBS.find((h) => h.id === hoveredHub);
+          if (!hub) return null;
+
+          // Convert viewBox coordinate percentage to CSS positioning
+          const leftPct = (hub.x / 1000) * 100;
+          const topPct = (hub.y / 507) * 100;
+
+          return (
+            <div
+              style={{
+                position: 'absolute',
+                left: `${leftPct}%`,
+                top: `${topPct}%`,
+                transform: 'translate(-50%, -125%)',
+                zIndex: 30,
+                pointerEvents: 'none',
+                background: 'rgba(12, 12, 12, 0.96)',
+                border: '1px solid #c8ff3d',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                boxShadow: '0 12px 30px rgba(0,0,0,0.85), 0 0 16px rgba(200, 255, 61, 0.25)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                <span style={{ fontSize: '15px' }}>{hub.flag}</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                  {hub.name} {hub.isHQ ? '(Primary Global HQ)' : 'Client Hub'}
+                </span>
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  color: 'rgba(237, 233, 232, 0.75)',
+                  marginBottom: '2px',
+                }}
+              >
+                Focus: {hub.city} &bull; {hub.focus}
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  color: '#c8ff3d',
+                  fontWeight: 600,
+                }}
+              >
+                Sync: {hub.sync}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* Map Legend Footer */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '12px 20px',
+          background: 'rgba(8, 8, 8, 0.75)',
+          borderTop: '1px solid rgba(237, 233, 232, 0.08)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#c8ff3d',
+                boxShadow: '0 0 8px #c8ff3d',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: 'rgba(237, 233, 232, 0.7)',
+              }}
+            >
+              India Global HQ
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '2px',
+                background: '#3df3ff',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: 'rgba(237, 233, 232, 0.7)',
+              }}
+            >
+              Active Delivery Hub
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                width: '24px',
+                height: '2px',
+                background: 'linear-gradient(90deg, #c8ff3d, #3df3ff)',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: 'rgba(237, 233, 232, 0.7)',
+              }}
+            >
+              Realtime Sprint Collaboration Beam
+            </span>
+          </div>
+        </div>
+
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            color: 'rgba(237, 233, 232, 0.4)',
+          }}
+        >
+          Click any country or hub on map to view details
+        </span>
+      </div>
+
+      <style>{`
+        @keyframes radarExpand {
+          0% {
+            r: 8px;
+            opacity: 0.8;
+          }
+          100% {
+            r: 22px;
+            opacity: 0;
+          }
+        }
+        @keyframes radarExpandHQ {
+          0% {
+            r: 12px;
+            opacity: 0.9;
+          }
+          100% {
+            r: 34px;
+            opacity: 0;
+          }
+        }
+        @keyframes beamFlow {
+          0% {
+            stroke-dashoffset: 48;
+          }
+          100% {
+            stroke-dashoffset: 0;
+          }
+        }
+        .radar-pulse {
+          animation: radarExpand 2.2s infinite ease-out;
+          transform-origin: center;
+        }
+        .radar-pulse-secondary {
+          animation: radarExpandHQ 2.8s infinite ease-out 0.8s;
+          transform-origin: center;
+        }
+        .beam-animation {
+          animation: beamFlow 1.8s infinite linear;
+        }
+        .proper-map-wrapper path {
+          transition: fill 0.25s ease, stroke 0.25s ease;
+        }
+      `}</style>
     </div>
   );
 }

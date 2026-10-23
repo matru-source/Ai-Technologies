@@ -219,9 +219,9 @@ export default function GlobalReach() {
             </div>
           </div>
 
-          {/* D3 Equal Earth Projection Map Canvas */}
+          {/* Proper Geographic World Map Console */}
           <div style={{ marginBottom: '28px' }}>
-            <RegionMap />
+            <RegionMap activeRegion={activeRegion} onSelectRegion={setActiveRegion} />
           </div>
 
           {/* Live Node Delivery Card */}
@@ -314,6 +314,7 @@ export default function GlobalReach() {
                 flag={reg.flag}
                 latency={reg.collaboration}
                 reach={reg.reach}
+                isActive={activeRegion === reg.id}
               />
             </div>
           ))}

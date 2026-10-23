@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export default function CountryGlyph({ code, name, flag, latency, _reach }) {
+export default function CountryGlyph({ code, name, flag, latency, _reach, isActive }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function CountryGlyph({ code, name, flag, latency, _reach }) {
     ctx.clearRect(0, 0, w, h);
 
     // Draw stylized geometric country grid outline
-    ctx.strokeStyle = 'rgba(200, 255, 61, 0.4)';
+    ctx.strokeStyle = isActive ? '#c8ff3d' : 'rgba(200, 255, 61, 0.4)';
     ctx.lineWidth = 1;
     ctx.strokeRect(4, 4, w - 8, h - 8);
 
@@ -44,7 +44,7 @@ export default function CountryGlyph({ code, name, flag, latency, _reach }) {
         }
       }
     }
-  }, [code]);
+  }, [code, isActive]);
 
   return (
     <div
@@ -53,8 +53,9 @@ export default function CountryGlyph({ code, name, flag, latency, _reach }) {
         alignItems: 'center',
         gap: '14px',
         padding: '16px 18px',
-        background: 'rgba(12, 11, 11, 0.75)',
-        border: '1px solid var(--border-subtle)',
+        background: isActive ? 'rgba(200, 255, 61, 0.08)' : 'rgba(12, 11, 11, 0.75)',
+        border: `1px solid ${isActive ? '#c8ff3d' : 'var(--border-subtle)'}`,
+        boxShadow: isActive ? '0 0 16px rgba(200, 255, 61, 0.18)' : 'none',
         borderRadius: '8px',
         transition: 'all 0.2s',
       }}
