@@ -72,13 +72,7 @@ export default function ServicesPage({ onOpenContact, onNavigateHome }) {
     },
   ];
   const [activeModelId, setActiveModelId] = useState('atlas');
-  const [isRunningModel, setIsRunningModel] = useState(false);
   const currentModel = models.find((m) => m.id === activeModelId) || models[0];
-
-  const handleRunExample = () => {
-    setIsRunningModel(true);
-    setTimeout(() => setIsRunningModel(false), 800);
-  };
 
   // Modular Software Architecture & Scope Matrix state for Section 03
   const workloads = [
@@ -630,36 +624,49 @@ export default function ServicesPage({ onOpenContact, onNavigateHome }) {
                   borderTop: '1px solid rgba(237, 233, 232, 0.08)',
                 }}
               >
-                <button
-                  onClick={handleRunExample}
+                <div
                   style={{
-                    all: 'unset',
-                    cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    backgroundColor: '#c8ff3d',
-                    color: '#000000',
-                    fontWeight: 600,
-                    fontSize: '12px',
-                    padding: '8px 14px',
+                    gap: '8px',
+                    backgroundColor: 'rgba(200, 255, 61, 0.08)',
+                    border: '1px solid rgba(200, 255, 61, 0.25)',
+                    padding: '6px 12px',
                     borderRadius: '6px',
-                    transition: 'all 0.2s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#d6ff66')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#c8ff3d')}
                 >
-                  {isRunningModel ? 'Simulating Workflow...' : 'Simulate Workflow Preview ▷'}
-                </button>
+                  <span
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      backgroundColor: '#c8ff3d',
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: '#c8ff3d',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {currentModel.endpoint}
+                  </span>
+                </div>
 
                 <span
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '11px',
-                    color: 'rgba(237, 233, 232, 0.45)',
+                    color: 'rgba(237, 233, 232, 0.55)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
                   }}
                 >
-                  {currentModel.endpoint}
+                  PRODUCTION API ARCHITECTURE
                 </span>
 
                 <div
@@ -671,7 +678,7 @@ export default function ServicesPage({ onOpenContact, onNavigateHome }) {
                     marginTop: '4px',
                   }}
                 >
-                  * Interactive UI preview simulation. Production builds connect directly to your live backend APIs and custom LLMs.
+                  * AI Technologies engineers secure API pipelines connecting custom model weights directly to your client applications.
                 </div>
               </div>
             </div>

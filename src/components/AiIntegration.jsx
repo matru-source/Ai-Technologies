@@ -73,14 +73,7 @@ export default function AiIntegration() {
   ];
 
   const [activeModelId, setActiveModelId] = useState('atlas');
-  const [isRunning, setIsRunning] = useState(false);
-
   const current = models.find((m) => m.id === activeModelId) || models[0];
-
-  const handleRunExample = () => {
-    setIsRunning(true);
-    setTimeout(() => setIsRunning(false), 900);
-  };
 
   return (
     <section
@@ -351,7 +344,7 @@ export default function AiIntegration() {
                   marginBottom: '12px',
                 }}
               >
-                SIMULATED PREVIEW OUTPUT
+                OUTPUT CAPABILITY SPECIFICATION
               </div>
 
               {/* Output Content: Clean typography matching Image 2 */}
@@ -360,12 +353,11 @@ export default function AiIntegration() {
                   style={{
                     fontSize: '16px',
                     fontWeight: 600,
-                    color: isRunning ? '#c8ff3d' : '#ffffff',
+                    color: '#ffffff',
                     lineHeight: 1.4,
-                    transition: 'color 0.2s',
                   }}
                 >
-                  {isRunning ? 'Simulating workflow execution...' : (current.outputTitle || current.output)}
+                  {current.outputTitle || current.output}
                 </div>
                 {current.outputDesc && (
                   <div
@@ -381,7 +373,7 @@ export default function AiIntegration() {
               </div>
             </div>
 
-            {/* Bottom Actions */}
+            {/* Bottom Actions & API Specification */}
             <div
               style={{
                 display: 'flex',
@@ -394,39 +386,49 @@ export default function AiIntegration() {
                 borderTop: '1px solid rgba(237, 233, 232, 0.08)',
               }}
             >
-              <button
-                onClick={handleRunExample}
+              <div
                 style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontWeight: 600,
-                  fontSize: '14px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  background: '#c8ff3d',
-                  color: '#000',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  backgroundColor: 'rgba(200, 255, 61, 0.08)',
+                  border: '1px solid rgba(200, 255, 61, 0.25)',
+                  padding: '8px 14px',
+                  borderRadius: '6px',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 0 16px rgba(200, 255, 61, 0.4)')}
-                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
               >
-                {isRunning ? 'Simulating Workflow...' : 'Simulate Workflow Preview ▷'}
-              </button>
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: '#c8ff3d',
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: '#c8ff3d',
+                  }}
+                >
+                  {current.endpoint}
+                </span>
+              </div>
 
               <span
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
+                  fontSize: '11px',
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: 'rgba(237, 233, 232, 0.6)',
+                  color: 'rgba(237, 233, 232, 0.55)',
                 }}
               >
-                <strong style={{ color: '#fff' }}>{current.endpoint}</strong> &bull; Interactive UI Preview
+                PRODUCTION API ARCHITECTURE
               </span>
 
               <div
@@ -439,7 +441,7 @@ export default function AiIntegration() {
                   lineHeight: 1.4,
                 }}
               >
-                * Interactive UI preview simulation. Production deployments connect directly to your custom LLM APIs, client data pipelines, and automation webhooks.
+                * AI Technologies engineers secure API integration layers connecting these model architectures directly to your databases, mobile apps, and business software.
               </div>
             </div>
           </div>
