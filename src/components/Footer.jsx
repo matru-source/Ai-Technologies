@@ -146,7 +146,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
           className="footer-links-grid"
         >
           {/* Services */}
-          <div>
+          <div className="footer-col-services">
             <div
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -190,7 +190,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
           </div>
 
           {/* Explore */}
-          <div>
+          <div className="footer-col-explore">
             <div
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -241,7 +241,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
           </div>
 
           {/* Start a Project */}
-          <div>
+          <div className="footer-col-start">
             <div
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -398,7 +398,11 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             gap: 40px !important;
           }
           .footer-links-grid {
-            grid-template-columns: 1fr 1fr !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 36px 20px !important;
+          }
+          .footer-col-start {
+            grid-column: 1 / -1 !important;
           }
         }
         @media (max-width: 600px) {
@@ -406,8 +410,13 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             padding: 36px 16px 28px;
           }
           .footer-links-grid {
-            grid-template-columns: 1fr !important;
-            gap: 24px !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 28px 16px !important;
+          }
+          .footer-col-start {
+            grid-column: 1 / -1 !important;
+            padding-top: 14px;
+            border-top: 1px solid rgba(237, 233, 232, 0.08);
           }
           .footer-bottom-bar {
             flex-direction: column !important;
