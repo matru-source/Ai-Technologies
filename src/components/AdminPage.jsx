@@ -217,7 +217,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
 
   const handleLogin = (e) => {
     e?.preventDefault();
-    // Accept standard default admin passcodes: 'admin2026' or 'aitech2026' or 'admin'
+    // Accept standard admin passcodes
     if (
       passcode.trim() === 'admin2026' ||
       passcode.trim() === 'aitech2026' ||
@@ -227,14 +227,8 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       setIsAuthenticated(true);
       setAuthError('');
     } else {
-      setAuthError('Invalid passcode. Use demo key: admin2026');
+      setAuthError('Invalid admin passcode. Access denied.');
     }
-  };
-
-  const handleDemoLogin = () => {
-    sessionStorage.setItem('aitech_admin_auth', 'true');
-    setIsAuthenticated(true);
-    setAuthError('');
   };
 
   const handleLogout = () => {
@@ -449,31 +443,6 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#c8ff3d')}
             >
               Sign In to Console <ArrowUpRight size={16} />
-            </button>
-
-            {/* Quick Demo Access for User Convenience */}
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: '#c8ff3d',
-                border: '1px solid rgba(200, 255, 61, 0.25)',
-                fontWeight: 600,
-                fontSize: '12.5px',
-                padding: '10px',
-                borderRadius: '9px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(200, 255, 61, 0.1)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)')}
-            >
-              <Sparkles size={13} /> Quick Demo Access (admin2026)
             </button>
           </form>
 
