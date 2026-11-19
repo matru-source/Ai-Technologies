@@ -214,13 +214,15 @@ export default function App() {
         {/* 1. Custom Bracket Cursor with Spring Physics */}
         <BracketCursor />
 
-        {/* 2. Three.js 3D Emblem & Particle Swarm Background with WebGL Crash Protection */}
-        <ErrorBoundary fallback={null}>
-          <Fluxor3D />
-        </ErrorBoundary>
+        {/* 2. Three.js 3D Emblem & Particle Swarm Background with WebGL Crash Protection (Disabled in Admin for clean interface) */}
+        {currentView !== 'admin' && (
+          <ErrorBoundary fallback={null}>
+            <Fluxor3D />
+          </ErrorBoundary>
+        )}
 
-        {/* 3. Reactive Scroll Background Lighting Shifts & Coordinate Grid */}
-        <ScrollBackground />
+        {/* 3. Reactive Scroll Background Lighting Shifts & Coordinate Grid (Disabled in Admin) */}
+        {currentView !== 'admin' && <ScrollBackground />}
 
         {/* 4. Top Sticky Navigation with Dynamic Dropdowns */}
         <Navbar

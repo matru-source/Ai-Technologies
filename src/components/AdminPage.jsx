@@ -308,7 +308,8 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
     return (
       <div
         style={{
-          minHeight: '85vh',
+          minHeight: '100vh',
+          backgroundColor: '#070707',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -498,14 +499,21 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
   return (
     <div
       style={{
-        position: 'relative',
-        zIndex: 2,
-        maxWidth: '1400px',
-        margin: '0 auto',
-        padding: '30px 24px 80px',
-        boxSizing: 'border-box',
+        minHeight: '100vh',
+        backgroundColor: '#070707',
+        width: '100%',
       }}
     >
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '30px 24px 80px',
+          boxSizing: 'border-box',
+        }}
+      >
       {/* Executive Header Bar */}
       <header
         style={{
@@ -1578,6 +1586,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
