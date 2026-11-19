@@ -211,8 +211,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-        {/* 1. Custom Bracket Cursor with Spring Physics */}
-        <BracketCursor />
+        {/* 1. Custom Bracket Cursor with Spring Physics (Disabled in Admin for standard pointer) */}
+        {currentView !== 'admin' && <BracketCursor />}
 
         {/* 2. Three.js 3D Emblem & Particle Swarm Background with WebGL Crash Protection (Disabled in Admin for clean interface) */}
         {currentView !== 'admin' && (
@@ -224,15 +224,17 @@ export default function App() {
         {/* 3. Reactive Scroll Background Lighting Shifts & Coordinate Grid (Disabled in Admin) */}
         {currentView !== 'admin' && <ScrollBackground />}
 
-        {/* 4. Top Sticky Navigation with Dynamic Dropdowns */}
-        <Navbar
-          onOpenContact={handleOpenContact}
-          onNavigateServices={handleNavigateServices}
-          onNavigateProjects={handleNavigateProjects}
-          onNavigateAdmin={handleNavigateAdmin}
-          onNavigateHome={handleNavigateHome}
-          currentView={currentView}
-        />
+        {/* 4. Top Sticky Navigation with Dynamic Dropdowns (Disabled in Admin) */}
+        {currentView !== 'admin' && (
+          <Navbar
+            onOpenContact={handleOpenContact}
+            onNavigateServices={handleNavigateServices}
+            onNavigateProjects={handleNavigateProjects}
+            onNavigateAdmin={handleNavigateAdmin}
+            onNavigateHome={handleNavigateHome}
+            currentView={currentView}
+          />
+        )}
 
         {/* 5. Main Content: Services Page, Projects Page, Admin Portal, Privacy Policy, Terms of Service, 404 Error Page, or Homepage Chapters */}
         {currentView === 'services' ? (
