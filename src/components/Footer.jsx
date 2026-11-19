@@ -13,7 +13,7 @@ import {
 import aitechLogo from '../assets/aitech-logo-white-neon.png';
 import aitechEmblem from '../assets/aitech-hero-emblem.png';
 
-export default function Footer({ onOpenContact, onNavigateHome, onNavigateServices }) {
+export default function Footer({ onOpenContact, onNavigateHome, onNavigateServices, onNavigateProjects }) {
   const [copiedEmail, setCopiedEmail] = useState(false);
 
   const copyEmailToClipboard = (e) => {
@@ -35,6 +35,11 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
     if (href === '#services-page') {
       e.preventDefault();
       if (onNavigateServices) onNavigateServices();
+      return;
+    }
+    if (href === '#projects-page' || href === '#projects') {
+      e.preventDefault();
+      if (onNavigateProjects) onNavigateProjects();
       return;
     }
     if (href === '#privacy' || href === '#terms') {
@@ -164,6 +169,7 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             <div className="footer-links-list">
               {[
                 { label: 'About AI Technologies', href: '#about-agency' },
+                { label: 'Featured projects', href: '#projects-page' },
                 { label: 'Our approach', href: '#how-we-work' },
                 {
                   label: 'Contact us',

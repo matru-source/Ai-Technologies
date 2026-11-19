@@ -23,6 +23,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy loaded page components for bundle optimization & code splitting
 const ServicesPage = lazy(() => import('./components/ServicesPage'));
+const ProjectsPage = lazy(() => import('./components/ProjectsPage'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
@@ -82,6 +83,17 @@ export default function App() {
       return 'services';
     }
 
+    // Check for projects page route
+    if (
+      hash === '#projects-page' ||
+      hash === '#projects' ||
+      hash === '#portfolio' ||
+      path === '/projects' ||
+      path === '/portfolio'
+    ) {
+      return 'projects';
+    }
+
     // Check for explicit 404 or unrecognized path
     if (hash === '#404' || (path !== '/' && path !== '/index.html')) {
       return '404';
@@ -96,7 +108,7 @@ export default function App() {
     const handleRouteSync = () => {
       const nextView = resolveViewFromLocation();
       setCurrentView(nextView);
-      if (nextView === 'services' || nextView === '404' || nextView === 'privacy' || nextView === 'terms') {
+      if (nextView === 'services' || nextView === 'projects' || nextView === '404' || nextView === 'privacy' || nextView === 'terms') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     };
@@ -115,10 +127,18 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleNavigateProjects = () => {
+    setCurrentView('projects');
+    window.location.hash = '#projects-page';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleNavigateHome = (targetAnchor) => {
     setCurrentView('home');
     if (
       window.location.hash.startsWith('#services') ||
+      window.location.hash.startsWith('#projects') ||
+      window.location.hash === '#portfolio' ||
       window.location.hash === '#404' ||
       window.location.hash === '#privacy' ||
       window.location.hash === '#terms' ||
@@ -180,16 +200,26 @@ export default function App() {
         <Navbar
           onOpenContact={handleOpenContact}
           onNavigateServices={handleNavigateServices}
+          onNavigateProjects={handleNavigateProjects}
           onNavigateHome={handleNavigateHome}
           currentView={currentView}
         />
 
-        {/* 5. Main Content: Services Page, Privacy Policy, Terms of Service, 404 Error Page, or Homepage Chapters */}
+        {/* 5. Main Content: Services Page, Projects Page, Privacy Policy, Terms of Service, 404 Error Page, or Homepage Chapters */}
         {currentView === 'services' ? (
           <Suspense fallback={<PageLoadingFallback />}>
             <ServicesPage
               onOpenContact={handleOpenContact}
               onNavigateHome={handleNavigateHome}
+              onNavigateProjects={handleNavigateProjects}
+            />
+          </Suspense>
+        ) : currentView === 'projects' ? (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <ProjectsPage
+              onOpenContact={handleOpenContact}
+              onNavigateHome={handleNavigateHome}
+              onNavigateServices={handleNavigateServices}
             />
           </Suspense>
         ) : currentView === 'privacy' ? (
@@ -199,6 +229,7 @@ export default function App() {
               <Footer
                 onOpenContact={handleOpenContact}
                 onNavigateServices={handleNavigateServices}
+                onNavigateProjects={handleNavigateProjects}
                 onNavigateHome={handleNavigateHome}
               />
             </div>
@@ -210,6 +241,7 @@ export default function App() {
               <Footer
                 onOpenContact={handleOpenContact}
                 onNavigateServices={handleNavigateServices}
+                onNavigateProjects={handleNavigateProjects}
                 onNavigateHome={handleNavigateHome}
               />
             </div>
@@ -219,13 +251,18 @@ export default function App() {
             <NotFoundPage
               onNavigateHome={handleNavigateHome}
               onNavigateServices={handleNavigateServices}
+              onNavigateProjects={handleNavigateProjects}
               onOpenContact={handleOpenContact}
             />
           </Suspense>
         ) : (
           <>
             <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>
-              <Hero onOpenContact={handleOpenContact} />
+              <Hero
+                onOpenContact={handleOpenContact}
+                onNavigateProjects={handleNavigateProjects}
+                onNavigateServices={handleNavigateServices}
+              />
               <DigitalDevelopment />
               <AboutAgency onOpenContact={handleOpenContact} />
               <StackStrip />
@@ -250,6 +287,7 @@ export default function App() {
               <Footer
                 onOpenContact={handleOpenContact}
                 onNavigateServices={handleNavigateServices}
+                onNavigateProjects={handleNavigateProjects}
                 onNavigateHome={handleNavigateHome}
               />
             </div>

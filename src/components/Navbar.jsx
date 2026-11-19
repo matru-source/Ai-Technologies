@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ArrowUpRight, Menu, X } from 'lucide-react';
 import aitechLogo from '../assets/aitech-logo-white-neon.png';
 
-export default function Navbar({ onOpenContact, onNavigateServices, onNavigateHome, currentView = 'home' }) {
+export default function Navbar({ onOpenContact, onNavigateServices, onNavigateProjects, onNavigateHome, currentView = 'home' }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -38,6 +38,12 @@ export default function Navbar({ onOpenContact, onNavigateServices, onNavigateHo
     if (href === '#services-page' || href === '#features') {
       e.preventDefault();
       if (onNavigateServices) onNavigateServices();
+      return;
+    }
+
+    if (href === '#projects-page' || href === '#projects') {
+      e.preventDefault();
+      if (onNavigateProjects) onNavigateProjects();
       return;
     }
 
@@ -658,6 +664,32 @@ export default function Navbar({ onOpenContact, onNavigateServices, onNavigateHo
           </a>
 
           <a
+            href="#projects-page"
+            onClick={(e) => {
+              e.preventDefault();
+              if (onNavigateProjects) onNavigateProjects();
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: currentView === 'projects' ? '#c8ff3d' : 'rgba(237, 233, 232, 0.72)',
+              fontSize: '14px',
+              fontWeight: currentView === 'projects' ? 600 : 400,
+              transition: 'color 0.2s ease',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#c8ff3d')}
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color =
+                currentView === 'projects' ? '#c8ff3d' : 'rgba(237, 233, 232, 0.72)')
+            }
+          >
+            Projects <ArrowUpRight size={13} style={{ opacity: currentView === 'projects' ? 1 : 0.6 }} />
+          </a>
+
+          <a
             href="#services-page"
             onClick={(e) => {
               e.preventDefault();
@@ -833,6 +865,25 @@ export default function Navbar({ onOpenContact, onNavigateServices, onNavigateHo
             style={{ fontSize: '15px', color: '#ede9e8', textDecoration: 'none' }}
           >
             About
+          </a>
+          <a
+            href="#projects-page"
+            onClick={(e) => {
+              e.preventDefault();
+              setMobileMenuOpen(false);
+              if (onNavigateProjects) onNavigateProjects();
+            }}
+            style={{
+              fontSize: '15px',
+              color: currentView === 'projects' ? '#c8ff3d' : '#ede9e8',
+              fontWeight: currentView === 'projects' ? 600 : 400,
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            Projects Page <ArrowUpRight size={14} color="#c8ff3d" />
           </a>
           <a
             href="#services-page"

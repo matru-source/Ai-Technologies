@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ChevronRight } from 'lucide-react';
 import heroEmblem from '../assets/aitech-hero-emblem.png';
 
-export default function Hero({ onOpenContact }) {
+export default function Hero({ onOpenContact, onNavigateProjects, onNavigateServices }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
 
@@ -156,7 +156,15 @@ export default function Hero({ onOpenContact }) {
               }}
             >
               <button
-                onClick={onOpenContact}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onNavigateProjects) {
+                    onNavigateProjects();
+                  } else {
+                    window.location.hash = '#projects-page';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 className="hero-btn-primary"
                 style={{
                   background: '#c8ff3d',
@@ -186,11 +194,17 @@ export default function Hero({ onOpenContact }) {
                   e.currentTarget.style.boxShadow = '0 0 16px rgba(200, 255, 61, 0.25)';
                 }}
               >
-                Get started <ArrowUpRight size={16} />
+                Explore Our Projects <ArrowUpRight size={16} />
               </button>
 
               <a
                 href="#services"
+                onClick={(e) => {
+                  if (onNavigateServices) {
+                    e.preventDefault();
+                    onNavigateServices();
+                  }
+                }}
                 className="hero-btn-secondary"
                 style={{
                   background: 'rgba(18, 17, 17, 0.85)',
