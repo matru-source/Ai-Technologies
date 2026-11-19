@@ -217,17 +217,12 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
 
   const handleLogin = (e) => {
     e?.preventDefault();
-    // Accept standard admin passcodes
-    if (
-      passcode.trim() === 'admin2026' ||
-      passcode.trim() === 'aitech2026' ||
-      passcode.trim() === 'admin'
-    ) {
+    if (passcode.trim() === 'Support@2026z') {
       sessionStorage.setItem('aitech_admin_auth', 'true');
       setIsAuthenticated(true);
       setAuthError('');
     } else {
-      setAuthError('Invalid admin passcode. Access denied.');
+      setAuthError('Invalid admin password. Access denied.');
     }
   };
 
