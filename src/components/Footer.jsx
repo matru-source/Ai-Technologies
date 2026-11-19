@@ -13,7 +13,7 @@ import {
 import aitechLogo from '../assets/aitech-logo-white-neon.png';
 import aitechEmblem from '../assets/aitech-hero-emblem.png';
 
-export default function Footer({ onOpenContact, onNavigateHome, onNavigateServices, onNavigateProjects }) {
+export default function Footer({ onOpenContact, onNavigateHome, onNavigateServices, onNavigateProjects, onNavigateAdmin }) {
   const [copiedEmail, setCopiedEmail] = useState(false);
 
   const copyEmailToClipboard = (e) => {
@@ -40,6 +40,11 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
     if (href === '#projects-page' || href === '#projects') {
       e.preventDefault();
       if (onNavigateProjects) onNavigateProjects();
+      return;
+    }
+    if (href === '#admin' || href === '#admin-page' || href === '/admin') {
+      e.preventDefault();
+      if (onNavigateAdmin) onNavigateAdmin();
       return;
     }
     if (href === '#privacy' || href === '#terms') {
@@ -287,6 +292,16 @@ export default function Footer({ onOpenContact, onNavigateHome, onNavigateServic
             <span className="footer-trust-tag">
               <ShieldCheck size={12} color="#c8ff3d" /> ISO 27001 Ready
             </span>
+            <span className="footer-bottom-sep">•</span>
+            <a
+              href="#admin"
+              onClick={(e) => handleFooterLink(e, '#admin')}
+              className="footer-legal-link"
+              style={{ opacity: 0.6 }}
+              title="Admin Portal"
+            >
+              Admin
+            </a>
           </div>
 
           <button

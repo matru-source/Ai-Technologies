@@ -24,6 +24,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Lazy loaded page components for bundle optimization & code splitting
 const ServicesPage = lazy(() => import('./components/ServicesPage'));
 const ProjectsPage = lazy(() => import('./components/ProjectsPage'));
+const AdminPage = lazy(() => import('./components/AdminPage'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
@@ -94,6 +95,17 @@ export default function App() {
       return 'projects';
     }
 
+    // Check for admin page route
+    if (
+      hash === '#admin' ||
+      hash === '#admin-page' ||
+      hash === '#dashboard' ||
+      path === '/admin' ||
+      path === '/dashboard'
+    ) {
+      return 'admin';
+    }
+
     // Check for explicit 404 or unrecognized path
     if (hash === '#404' || (path !== '/' && path !== '/index.html')) {
       return '404';
@@ -108,7 +120,14 @@ export default function App() {
     const handleRouteSync = () => {
       const nextView = resolveViewFromLocation();
       setCurrentView(nextView);
-      if (nextView === 'services' || nextView === 'projects' || nextView === '404' || nextView === 'privacy' || nextView === 'terms') {
+      if (
+        nextView === 'services' ||
+        nextView === 'projects' ||
+        nextView === 'admin' ||
+        nextView === '404' ||
+        nextView === 'privacy' ||
+        nextView === 'terms'
+      ) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     };
@@ -133,11 +152,18 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleNavigateAdmin = () => {
+    setCurrentView('admin');
+    window.location.hash = '#admin';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleNavigateHome = (targetAnchor) => {
     setCurrentView('home');
     if (
       window.location.hash.startsWith('#services') ||
       window.location.hash.startsWith('#projects') ||
+      window.location.hash.startsWith('#admin') ||
       window.location.hash === '#portfolio' ||
       window.location.hash === '#404' ||
       window.location.hash === '#privacy' ||
@@ -201,11 +227,12 @@ export default function App() {
           onOpenContact={handleOpenContact}
           onNavigateServices={handleNavigateServices}
           onNavigateProjects={handleNavigateProjects}
+          onNavigateAdmin={handleNavigateAdmin}
           onNavigateHome={handleNavigateHome}
           currentView={currentView}
         />
 
-        {/* 5. Main Content: Services Page, Projects Page, Privacy Policy, Terms of Service, 404 Error Page, or Homepage Chapters */}
+        {/* 5. Main Content: Services Page, Projects Page, Admin Portal, Privacy Policy, Terms of Service, 404 Error Page, or Homepage Chapters */}
         {currentView === 'services' ? (
           <Suspense fallback={<PageLoadingFallback />}>
             <ServicesPage
@@ -222,6 +249,15 @@ export default function App() {
               onNavigateServices={handleNavigateServices}
             />
           </Suspense>
+        ) : currentView === 'admin' ? (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <AdminPage
+              onNavigateHome={handleNavigateHome}
+              onNavigateProjects={handleNavigateProjects}
+              onNavigateServices={handleNavigateServices}
+              onOpenContact={handleOpenContact}
+            />
+          </Suspense>
         ) : currentView === 'privacy' ? (
           <Suspense fallback={<PageLoadingFallback />}>
             <PrivacyPolicy onNavigateHome={handleNavigateHome} />
@@ -230,6 +266,7 @@ export default function App() {
                 onOpenContact={handleOpenContact}
                 onNavigateServices={handleNavigateServices}
                 onNavigateProjects={handleNavigateProjects}
+                onNavigateAdmin={handleNavigateAdmin}
                 onNavigateHome={handleNavigateHome}
               />
             </div>
@@ -242,6 +279,7 @@ export default function App() {
                 onOpenContact={handleOpenContact}
                 onNavigateServices={handleNavigateServices}
                 onNavigateProjects={handleNavigateProjects}
+                onNavigateAdmin={handleNavigateAdmin}
                 onNavigateHome={handleNavigateHome}
               />
             </div>
@@ -288,6 +326,7 @@ export default function App() {
                 onOpenContact={handleOpenContact}
                 onNavigateServices={handleNavigateServices}
                 onNavigateProjects={handleNavigateProjects}
+                onNavigateAdmin={handleNavigateAdmin}
                 onNavigateHome={handleNavigateHome}
               />
             </div>
