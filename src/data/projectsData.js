@@ -17,6 +17,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['Next.js 15', 'Node.js', 'Stripe Treasury', 'Redis', 'PostgreSQL', 'TypeScript'],
     accentColor: '#3df3ff',
     visualType: 'fintech-chart',
+    liveUrl: 'https://aura-fintech.vercel.app',
+    image: '',
     challenge: 'Managing real-time FX currency swings and high-concurrency wallet transactions without ledger inconsistency or latency spikes.',
     solution: 'Built an event-driven microservices architecture using Redis Streams and atomic ledger transactions with sub-10ms reconciliation.',
     deliverables: ['Multi-Currency Treasury Core', 'Instant Virtual Card Engine', 'Automated FX Hedging Automation', 'Real-Time Fraud Telemetry'],
@@ -36,6 +38,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['React', 'Shopify Storefront API', 'GraphQL', 'Edge Workers', 'Three.js', 'Framer Motion'],
     accentColor: '#c8ff3d',
     visualType: 'ecommerce-cart',
+    liveUrl: 'https://kinetix-apparel.com',
+    image: '',
     challenge: 'Legacy monolithic storefront took 4.8 seconds to load on mobile, causing severe cart abandonment during global sales drops.',
     solution: 'Decoupled frontend into a distributed edge-rendered application with proactive pre-fetching and WebGL 3D garment exploration.',
     deliverables: ['Headless React Storefront', 'Interactive 3D Product Viewer', 'Edge CDN Optimization', 'Instant One-Click Checkout'],
@@ -55,6 +59,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['React Native', 'WebRTC Video', 'FastAPI', 'EHR Integration', 'AWS GovCloud', 'Bluetooth BLE'],
     accentColor: '#ff5c5c',
     visualType: 'telehealth-vitals',
+    liveUrl: 'https://pulse-health-systems.com',
+    image: '',
     challenge: 'Ensuring zero-latency video calls and reliable biometric telemetry transfer even on unstable 3G/4G rural networks.',
     solution: 'Implemented adaptive bitrate WebRTC pipelines and an offline-first patient records caching layer with biometric biometric lock.',
     deliverables: ['Patient iOS & Android Mobile Apps', 'Clinician Web Console', 'HIPAA Encrypted Video Core', 'Smart Vitals Bluetooth Link'],
@@ -74,6 +80,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['Go / Golang', 'React', 'Kubernetes API', 'Prometheus', 'Grafana Core', 'Docker'],
     accentColor: '#a78bfa',
     visualType: 'infra-topology',
+    liveUrl: 'https://vortex-mesh.io',
+    image: '',
     challenge: 'Engineering teams spent 6+ hours diagnosing inter-service cascading failures across 400+ distributed microservices.',
     solution: 'Engineered an eBPF-based topology auto-discovery engine that automatically maps root-cause bottlenecks and recommends instant node scaling.',
     deliverables: ['Visual Cluster Topology Map', 'Automated Cost Optimization Engine', 'eBPF Kernel Telemetry Agent', 'Multi-Cloud IAM Security'],
@@ -93,6 +101,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['Mapbox GL JS', 'Node.js', 'WebSocket Real-Time', 'PostGIS', 'TypeScript', 'Tailwind CSS'],
     accentColor: '#c8ff3d',
     visualType: 'geo-fleet',
+    liveUrl: 'https://apex-fleet-tracking.com',
+    image: '',
     challenge: 'Legacy system lagged up to 4 minutes behind vehicle GPS updates, causing driver dispatch inefficiencies and misrouted cargo.',
     solution: 'Engineered a high-throughput binary WebSocket broker handling 15,000 simultaneous telemetry pings per second with instant map clustering.',
     deliverables: ['Live Geospatial Dispatcher Desk', 'Driver Route Navigation App', 'Predictive Fuel Analytics', 'Automated Bill-of-Lading Workflow'],
@@ -112,6 +122,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['Three.js', 'React', 'WebGL 2.0', 'Stable Diffusion API', 'WebAssembly', 'GLSL Shaders'],
     accentColor: '#f59e0b',
     visualType: 'studio-3d',
+    liveUrl: 'https://synthetix-studio.ai',
+    image: '',
     challenge: 'Bringing desktop-class 3D rendering and ray-traced materials into standard consumer web browsers with 60 FPS performance.',
     solution: 'Optimized custom WebGL shaders, instanced mesh geometry, and WebAssembly lighting computations running parallel on client GPUs.',
     deliverables: ['Full WebGL 3D Canvas Editor', 'Procedural Lighting Rig', 'AI Prompt-to-Texture Engine', 'High-Res USDZ/GLTF Exporter'],
@@ -131,6 +143,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['React Native', 'CRDTs (Yjs)', 'SQLite Edge', 'Tailwind', 'Pusher Sockets', 'iOS / Android'],
     accentColor: '#38bdf8',
     visualType: 'notes-crdt',
+    liveUrl: 'https://chronos-workspace.app',
+    image: '',
     challenge: 'Ensuring team members collaborating across flights and subways never suffer merge conflicts or data loss upon reconnecting.',
     solution: 'Implemented mathematical CRDT conflict resolution paired with an embedded SQLite engine that syncs delta states seamlessly.',
     deliverables: ['iOS & Android Native Apps', 'Offline-First CRDT Sync Engine', 'Canvas Whiteboard Engine', 'Encrypted Cloud Backup'],
@@ -150,6 +164,8 @@ export const DEFAULT_PROJECTS = [
     tags: ['Rust Core', 'Next.js 15', 'WireGuard Protocol', 'OAuth 2.1 / SAML', 'PostgreSQL', 'WebAuthn'],
     accentColor: '#c8ff3d',
     visualType: 'security-shield',
+    liveUrl: 'https://cybershield-gateway.dev',
+    image: '',
     challenge: 'Protecting distributed remote workforces from phishing and credential theft without frustrating users with intrusive VPN lag.',
     solution: 'Engineered a Rust-based edge proxy with hardware security key authentication (WebAuthn / FIDO2) and micro-segmented network routing.',
     deliverables: ['Zero-Trust Policy Command Center', 'Cross-Platform WireGuard Client', 'Hardware FIDO2 Integration', 'Automated Compliance Reporting'],
@@ -163,7 +179,11 @@ export function getStoredProjects() {
     if (!raw) return DEFAULT_PROJECTS;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      return parsed.map((p) => ({
+        ...p,
+        liveUrl: p.liveUrl !== undefined ? p.liveUrl : (DEFAULT_PROJECTS.find(d => d.id === p.id)?.liveUrl || 'https://aitechnologies.org.in'),
+        image: p.image || '',
+      }));
     }
   } catch (err) {
     console.warn('Error reading stored projects:', err);

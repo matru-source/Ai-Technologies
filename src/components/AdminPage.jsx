@@ -32,6 +32,9 @@ import {
   Check,
   Save,
   ExternalLink,
+  Image as ImageIcon,
+  Upload,
+  Link2,
 } from 'lucide-react';
 import aitechLogo from '../assets/aitech-logo-white-neon.png';
 import aitechEmblem from '../assets/aitech-hero-emblem.png';
@@ -150,7 +153,30 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
     tagline: '',
     description: '',
     tags: '',
+    liveUrl: '',
+    image: '',
   });
+
+  // Handle image upload from computer (reads as Base64 Data URL)
+  const handleImageFileChange = (e, isEdit = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Selected image exceeds 5MB limit. Please choose a smaller image.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const dataUrl = uploadEvent.target.result;
+      if (isEdit) {
+        setEditingProject((prev) => ({ ...prev, image: dataUrl }));
+      } else {
+        setNewProject((prev) => ({ ...prev, image: dataUrl }));
+      }
+      showToast('📷 Project image attached!');
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Real-Time Inline Table Editing State
   const [inlineEditId, setInlineEditId] = useState(null);
@@ -165,6 +191,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       heroMetric: p.heroMetric || '',
       status: p.status || 'Published',
       tags: Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || ''),
+      liveUrl: p.liveUrl || '',
     });
   };
 
@@ -189,6 +216,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       heroMetric: inlineForm.heroMetric.trim() || target.heroMetric,
       status: inlineForm.status || target.status,
       tags: parsedTags.length > 0 ? parsedTags : target.tags,
+      liveUrl: inlineForm.liveUrl !== undefined ? inlineForm.liveUrl.trim() : target.liveUrl,
     };
 
     const updatedList = projectList.map((p) => (p.id === id ? updated : p));
@@ -208,6 +236,8 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       secondaryMetric: p.secondaryMetric || '',
       tagline: p.tagline || '',
       description: p.description || '',
+      liveUrl: p.liveUrl || '',
+      image: p.image || '',
       tagsInput: Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || ''),
     });
   };
@@ -231,6 +261,8 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       secondaryMetric: editingProject.secondaryMetric?.trim() || '🔒 Enterprise SLA',
       tagline: editingProject.tagline?.trim() || '',
       description: editingProject.description?.trim() || '',
+      liveUrl: editingProject.liveUrl?.trim() || '',
+      image: editingProject.image || '',
       tags: parsedTags.length > 0 ? parsedTags : ['React', 'Node.js'],
     };
     delete updated.tagsInput;
@@ -303,6 +335,8 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       tagline: newProject.tagline?.trim() || 'High-performance digital engineering solution built for enterprise scale.',
       description: newProject.description?.trim() || 'Custom engineered software system delivered with cutting-edge architectural patterns.',
       tags: newProject.tags ? newProject.tags.split(',').map((t) => t.trim()).filter(Boolean) : ['React', 'Node.js', 'Cloud'],
+      liveUrl: newProject.liveUrl?.trim() || '',
+      image: newProject.image || '',
       accentColor: '#c8ff3d',
     };
 
@@ -318,6 +352,8 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       tagline: '',
       description: '',
       tags: '',
+      liveUrl: '',
+      image: '',
     });
   };
 
@@ -1175,6 +1211,24 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                                 fontFamily: 'var(--font-mono)',
                                 fontSize: '11px',
                                 outline: 'none',
+                                marginBottom: '5px',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                            <input
+                              type="text"
+                              value={inlineForm.liveUrl || ''}
+                              onChange={(e) => setInlineForm({ ...inlineForm, liveUrl: e.target.value })}
+                              placeholder="Live Site URL (https://...)"
+                              style={{
+                                width: '100%',
+                                padding: '4px 8px',
+                                backgroundColor: '#070707',
+                                border: '1px solid rgba(237, 233, 232, 0.15)',
+                                borderRadius: '5px',
+                                color: '#ede9e8',
+                                fontSize: '11px',
+                                outline: 'none',
                                 boxSizing: 'border-box',
                               }}
                             />
@@ -1346,9 +1400,49 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         <td style={{ padding: '16px 20px' }}>
-                          <div style={{ fontWeight: 600, color: '#ffffff' }}>{p.title}</div>
-                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c8ff3d', marginTop: '2px' }}>
-                            {Array.isArray(p.tags) ? p.tags.join(' • ') : p.tags}
+                          <div style={{ fontWeight: 600, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span>{p.title}</span>
+                            {p.image && (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  fontFamily: 'var(--font-mono)',
+                                  fontSize: '10px',
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  backgroundColor: 'rgba(200, 255, 61, 0.1)',
+                                  border: '1px solid rgba(200, 255, 61, 0.25)',
+                                  color: '#c8ff3d',
+                                }}
+                                title="Homepage preview image attached"
+                              >
+                                <ImageIcon size={10} /> Image
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c8ff3d', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span>{Array.isArray(p.tags) ? p.tags.join(' • ') : p.tags}</span>
+                            {p.liveUrl && (
+                              <a
+                                href={p.liveUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  color: 'rgba(237, 233, 232, 0.65)',
+                                  textDecoration: 'none',
+                                  fontSize: '10px',
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.color = '#c8ff3d')}
+                                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 233, 232, 0.65)')}
+                              >
+                                <Link2 size={10} /> Live Site ↗
+                              </a>
+                            )}
                           </div>
                         </td>
                         <td style={{ padding: '16px 20px', color: 'rgba(237, 233, 232, 0.8)' }}>
@@ -1960,6 +2054,130 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                 />
               </div>
 
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '6px' }}>
+                  Live Site / Production URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="e.g. https://clientwebsite.com or https://project.demo.app"
+                  value={newProject.liveUrl || ''}
+                  onChange={(e) => setNewProject({ ...newProject, liveUrl: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(237, 233, 232, 0.15)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '6px' }}>
+                  Project Homepage Image / Screenshot (Shown in Website Card)
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Paste Image URL (https://...)"
+                    value={newProject.image || ''}
+                    onChange={(e) => setNewProject({ ...newProject, image: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(237, 233, 232, 0.15)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      backgroundColor: 'rgba(200, 255, 61, 0.12)',
+                      border: '1px dashed rgba(200, 255, 61, 0.4)',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      color: '#c8ff3d',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Upload size={14} /> Upload Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleImageFileChange(e, false)}
+                    />
+                  </label>
+                </div>
+
+                {newProject.image && (
+                  <div
+                    style={{
+                      marginTop: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <img
+                      src={newProject.image}
+                      alt="Preview"
+                      style={{
+                        width: '72px',
+                        height: '46px',
+                        objectFit: 'cover',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(200, 255, 61, 0.3)',
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '12px', color: '#ffffff', fontWeight: 600 }}>Homepage Image Attached</div>
+                      <div style={{ fontSize: '11px', color: 'rgba(237, 233, 232, 0.5)' }}>Will be rendered on public /projects card</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewProject({ ...newProject, image: '' })}
+                      title="Remove Image"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        backgroundColor: 'rgba(255, 77, 79, 0.12)',
+                        border: '1px solid rgba(255, 77, 79, 0.3)',
+                        color: '#ff4d4f',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Trash2 size={12} /> Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button
                   type="submit"
@@ -2350,6 +2568,153 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                 />
               </div>
 
+              {/* Row 7: Live Site URL */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <label style={{ fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)' }}>
+                    Live Site / Production URL (Redirect Destination)
+                  </label>
+                  {editingProject.liveUrl && (
+                    <a
+                      href={editingProject.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: '#c8ff3d',
+                        fontSize: '11px',
+                        fontFamily: 'var(--font-mono)',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Test Live Link <ExternalLink size={11} />
+                    </a>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  value={editingProject.liveUrl || ''}
+                  onChange={(e) => setEditingProject({ ...editingProject, liveUrl: e.target.value })}
+                  placeholder="https://client-domain.com or https://project.demo.app"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(237, 233, 232, 0.15)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Row 8: Project Homepage Image Upload & Link */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                  Project Homepage Image / Screenshot (Rendered on Public Website Card)
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={editingProject.image || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, image: e.target.value })}
+                    placeholder="Paste Image URL (https://...)"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(237, 233, 232, 0.15)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      backgroundColor: 'rgba(200, 255, 61, 0.12)',
+                      border: '1px dashed rgba(200, 255, 61, 0.4)',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      color: '#c8ff3d',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Upload size={14} /> Upload From Device
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleImageFileChange(e, true)}
+                    />
+                  </label>
+                </div>
+
+                {/* Edit Modal Image Preview Thumbnail */}
+                {editingProject.image && (
+                  <div
+                    style={{
+                      marginTop: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <img
+                      src={editingProject.image}
+                      alt="Homepage Preview"
+                      style={{
+                        width: '76px',
+                        height: '48px',
+                        objectFit: 'cover',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(200, 255, 61, 0.3)',
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '12px', color: '#ffffff', fontWeight: 600 }}>Homepage Image Attached</div>
+                      <div style={{ fontSize: '11px', color: 'rgba(237, 233, 232, 0.5)' }}>Will be rendered on public /projects card</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingProject({ ...editingProject, image: '' })}
+                      title="Remove Image"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        backgroundColor: 'rgba(255, 77, 79, 0.12)',
+                        border: '1px solid rgba(255, 77, 79, 0.3)',
+                        color: '#ff4d4f',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Trash2 size={12} /> Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Live Preview Card */}
               <div
                 style={{
@@ -2374,6 +2739,28 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                     ● {editingProject.status}
                   </span>
                 </div>
+
+                {/* Thumbnail in Preview Card */}
+                {editingProject.image && (
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '110px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      marginBottom: '10px',
+                      border: '1px solid rgba(200, 255, 61, 0.3)',
+                      backgroundColor: '#000',
+                    }}
+                  >
+                    <img
+                      src={editingProject.image}
+                      alt="Card Preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </div>
+                )}
+
                 <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
                   {editingProject.title || 'Untitled Project'}
                 </div>
@@ -2385,7 +2772,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                     {editingProject.tagline}
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                   {editingProject.heroMetric && (
                     <span
                       style={{
@@ -2412,6 +2799,21 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                       }}
                     >
                       {editingProject.secondaryMetric}
+                    </span>
+                  )}
+                  {editingProject.liveUrl && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10px',
+                        color: '#c8ff3d',
+                        backgroundColor: 'rgba(200, 255, 61, 0.08)',
+                        border: '1px solid rgba(200, 255, 61, 0.2)',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      🔗 Live Site Attached
                     </span>
                   )}
                 </div>

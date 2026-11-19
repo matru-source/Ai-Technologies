@@ -433,6 +433,56 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                     </div>
                   </div>
 
+                  {/* Project Screenshot / Homepage Image (if provided by admin) */}
+                  {p.image ? (
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '165px',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        marginBottom: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        backgroundColor: '#0a0a0a',
+                      }}
+                    >
+                      <img
+                        src={p.image}
+                        alt={`${p.title} Preview`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                          transition: 'transform 0.35s ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '6px',
+                          right: '6px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                          backdropFilter: 'blur(8px)',
+                          padding: '3px 7px',
+                          borderRadius: '5px',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          color: '#c8ff3d',
+                        }}
+                      >
+                        <Globe size={10} /> Live Preview
+                      </div>
+                    </div>
+                  ) : null}
+
                   {/* Center Schematic Visual Diagram */}
                   <div
                     style={{
@@ -684,34 +734,41 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                     </button>
 
                     <button
-                      onClick={() => {
-                        if (onOpenContact) onOpenContact();
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const targetUrl = p.liveUrl || 'https://aitechnologies.org.in';
+                        window.open(targetUrl, '_blank', 'noopener,noreferrer');
                       }}
-                      title="Inquire about a similar project"
+                      title={p.liveUrl ? `Open live site: ${p.liveUrl}` : 'Open live site'}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        gap: '5px',
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(237, 233, 232, 0.12)',
-                        color: 'rgba(237, 233, 232, 0.8)',
-                        padding: '9px 12px',
+                        border: '1px solid rgba(237, 233, 232, 0.14)',
+                        color: 'rgba(237, 233, 232, 0.85)',
+                        padding: '9px 13px',
                         borderRadius: '7px',
                         fontSize: '12px',
+                        fontWeight: 500,
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
                         whiteSpace: 'nowrap',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.backgroundColor = 'rgba(200, 255, 61, 0.12)';
+                        e.currentTarget.style.borderColor = 'rgba(200, 255, 61, 0.35)';
+                        e.currentTarget.style.color = '#c8ff3d';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                        e.currentTarget.style.color = 'rgba(237, 233, 232, 0.8)';
+                        e.currentTarget.style.borderColor = 'rgba(237, 233, 232, 0.14)';
+                        e.currentTarget.style.color = 'rgba(237, 233, 232, 0.85)';
                       }}
                     >
-                      Inquire
+                      <span>Live Site</span>
+                      <ExternalLink size={12} />
                     </button>
                   </div>
                 </div>
@@ -829,6 +886,27 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
               </p>
             </div>
 
+            {/* Case Study Image Banner (if provided) */}
+            {selectedProject.image && (
+              <div
+                style={{
+                  width: '100%',
+                  height: '240px',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  marginBottom: '24px',
+                  border: '1px solid rgba(200, 255, 61, 0.25)',
+                  backgroundColor: '#0a0a0a',
+                }}
+              >
+                <img
+                  src={selectedProject.image}
+                  alt={selectedProject.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+            )}
+
             {/* Metrics Row */}
             <div
               style={{
@@ -941,7 +1019,7 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
             </div>
 
             {/* CTA Button Inside Modal */}
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button
                 onClick={() => {
                   setSelectedProject(null);
@@ -949,6 +1027,7 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                 }}
                 style={{
                   flex: 1,
+                  minWidth: '200px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -969,6 +1048,40 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
               >
                 Start a Project Like This <ArrowUpRight size={16} />
               </button>
+
+              {selectedProject.liveUrl && (
+                <button
+                  onClick={() => {
+                    window.open(selectedProject.liveUrl, '_blank', 'noopener,noreferrer');
+                  }}
+                  title={`Open live site: ${selectedProject.liveUrl}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '12px 20px',
+                    borderRadius: '10px',
+                    backgroundColor: 'rgba(200, 255, 61, 0.12)',
+                    border: '1px solid rgba(200, 255, 61, 0.35)',
+                    color: '#c8ff3d',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#c8ff3d';
+                    e.currentTarget.style.color = '#000000';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(200, 255, 61, 0.12)';
+                    e.currentTarget.style.color = '#c8ff3d';
+                  }}
+                >
+                  <ExternalLink size={15} /> Visit Live Site
+                </button>
+              )}
 
               <button
                 onClick={() => setSelectedProject(null)}
