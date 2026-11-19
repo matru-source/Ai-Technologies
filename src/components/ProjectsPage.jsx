@@ -46,25 +46,6 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
 
   const projects = [
     {
-      id: 'nexus-ai',
-      title: 'NexusAI Enterprise Platform',
-      client: 'Nexus Intelligence Corp',
-      category: 'AI & Automation',
-      type: 'Autonomous Agent Cockpit',
-      year: '2026',
-      status: 'Live in Production',
-      heroMetric: '⚡ 35ms Latency',
-      secondaryMetric: '📈 4.2x Faster Workflows',
-      tagline: 'Autonomous multi-agent orchestration platform for enterprise operations and automated document cognition.',
-      description: 'Engineered a secure, multi-agent AI system that connects enterprise data lakes with custom LLM reasoning chains. Provides real-time document analysis, multi-step action execution, and human-in-the-loop audit logs with SOC2 compliance.',
-      tags: ['React 19', 'Python FastAPI', 'LangGraph', 'Claude 3.5 & GPT-4o', 'PostgreSQL', 'Tailwind CSS'],
-      accentColor: '#c8ff3d',
-      visualType: 'ai-matrix',
-      challenge: 'The client needed to automate complex 14-step regulatory auditing across 50,000+ monthly documents without sacrificing privacy or deterministic accuracy.',
-      solution: 'We engineered a localized retrieval-augmented reasoning cluster using LangGraph with vector embeddings, reducing document triage time from 4 days to 45 seconds.',
-      deliverables: ['Custom Agentic LLM Orchestrator', 'Executive Command Dashboard', 'Streaming Token Interface', 'SOC2 Audit Logging Gateway'],
-    },
-    {
       id: 'aura-fintech',
       title: 'Aura FinTech Global Banking',
       client: 'Aura Financial UK',
