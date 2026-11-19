@@ -30,9 +30,12 @@ import {
   ShieldAlert,
   X,
   Check,
+  Save,
+  ExternalLink,
 } from 'lucide-react';
 import aitechLogo from '../assets/aitech-logo-white-neon.png';
 import aitechEmblem from '../assets/aitech-hero-emblem.png';
+import { getStoredProjects, saveStoredProjects, resetProjectsToDefault } from '../data/projectsData';
 
 export default function AdminPage({ onNavigateHome, onNavigateProjects, onNavigateServices, onOpenContact }) {
   useEffect(() => {
@@ -54,106 +57,35 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
   // Active console tab
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'projects' | 'leads' | 'telemetry'
 
-  // Portfolio items in admin state (persisted to localStorage)
-  const initialProjects = [
-    {
-      id: 'aura-fintech',
-      title: 'Aura FinTech Global Banking',
-      client: 'Aura Financial UK',
-      category: 'Enterprise SaaS',
-      status: 'Published',
-      year: '2026',
-      heroMetric: '💳 $45M+ Monthly Volume',
-      tags: ['Next.js 15', 'Node.js', 'Stripe Treasury', 'Redis'],
-    },
-    {
-      id: 'kinetix-commerce',
-      title: 'Kinetix Headless Commerce Suite',
-      client: 'Kinetix Apparel Global',
-      category: 'Web Platforms',
-      status: 'Published',
-      year: '2025',
-      heroMetric: '🚀 99 Core Web Vitals',
-      tags: ['React', 'Shopify Storefront', 'GraphQL', 'Edge CDN'],
-    },
-    {
-      id: 'pulse-health',
-      title: 'Pulse Health Clinical Telehealth',
-      client: 'Pulse Health Systems',
-      category: 'Mobile Apps',
-      status: 'Published',
-      year: '2026',
-      heroMetric: '🏥 HIPAA Compliant',
-      tags: ['React Native', 'WebRTC', 'FastAPI', 'AWS GovCloud'],
-    },
-    {
-      id: 'vortex-cloud',
-      title: 'Vortex Cloud Kubernetes Mesh',
-      client: 'Vortex Data Labs',
-      category: 'Enterprise SaaS',
-      status: 'Published',
-      year: '2026',
-      heroMetric: '⏱️ 99.999% SLA',
-      tags: ['Go', 'Kubernetes', 'Prometheus', 'Docker'],
-    },
-    {
-      id: 'apex-logistics',
-      title: 'Apex Global Fleet & Supply Chain',
-      client: 'Apex TransLogistics',
-      category: 'Web Platforms',
-      status: 'Published',
-      year: '2025',
-      heroMetric: '🗺️ 15,000+ Vehicles',
-      tags: ['Mapbox GL', 'Node.js', 'WebSocket', 'PostGIS'],
-    },
-    {
-      id: 'synthetix-studio',
-      title: 'Synthetix 3D Creative Studio',
-      client: 'Synthetix Media Group',
-      category: 'AI & Automation',
-      status: 'Published',
-      year: '2026',
-      heroMetric: '🎨 2.5M Assets Rendered',
-      tags: ['Three.js', 'WebGL 2.0', 'GLSL', 'WebAssembly'],
-    },
-    {
-      id: 'chronos-workspace',
-      title: 'Chronos Team Collaboration Suite',
-      client: 'Chronos Software Inc',
-      category: 'Mobile Apps',
-      status: 'Published',
-      year: '2025',
-      heroMetric: '📱 85k Daily Users',
-      tags: ['React Native', 'CRDTs', 'SQLite', 'Tailwind'],
-    },
-    {
-      id: 'cybershield-gateway',
-      title: 'CyberShield Zero-Trust Access',
-      client: 'CyberShield Security Labs',
-      category: 'Enterprise SaaS',
-      status: 'Published',
-      year: '2026',
-      heroMetric: '🛡️ ISO 27001 Certified',
-      tags: ['Rust Core', 'Next.js 15', 'WireGuard', 'WebAuthn'],
-    },
-  ];
+  // Portfolio items in admin state (synchronized with live site and localStorage)
+  const [projectList, setProjectList] = useState(getStoredProjects);
 
-  const [projectList, setProjectList] = useState(() => {
-    try {
-      const saved = localStorage.getItem('aitech_admin_projects');
-      return saved ? JSON.parse(saved) : initialProjects;
-    } catch {
-      return initialProjects;
-    }
-  });
+  // Sync projects state in real-time across tabs/windows
+  useEffect(() => {
+    const handleSync = () => {
+      setProjectList(getStoredProjects());
+    };
+    window.addEventListener('aitech_projects_changed', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('aitech_projects_changed', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
-  const saveProjects = (newList) => {
+  // Real-time toast feedback state
+  const [realtimeToast, setRealtimeToast] = useState(null);
+  const showToast = (message) => {
+    setRealtimeToast(message);
+    setTimeout(() => {
+      setRealtimeToast(null);
+    }, 3200);
+  };
+
+  const saveProjects = (newList, message = 'Saved in real time & synced live') => {
     setProjectList(newList);
-    try {
-      localStorage.setItem('aitech_admin_projects', JSON.stringify(newList));
-    } catch (e) {
-      console.error(e);
-    }
+    saveStoredProjects(newList);
+    showToast(message);
   };
 
   // Inquiries / Leads state
@@ -212,9 +144,109 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
     title: '',
     client: '',
     category: 'Web Platforms',
+    type: '',
     heroMetric: '',
+    secondaryMetric: '',
+    tagline: '',
+    description: '',
     tags: '',
   });
+
+  // Real-Time Inline Table Editing State
+  const [inlineEditId, setInlineEditId] = useState(null);
+  const [inlineForm, setInlineForm] = useState({});
+
+  const startInlineEdit = (p) => {
+    setInlineEditId(p.id);
+    setInlineForm({
+      title: p.title || '',
+      client: p.client || '',
+      category: p.category || 'Web Platforms',
+      heroMetric: p.heroMetric || '',
+      status: p.status || 'Published',
+      tags: Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || ''),
+    });
+  };
+
+  const cancelInlineEdit = () => {
+    setInlineEditId(null);
+    setInlineForm({});
+  };
+
+  const saveInlineEdit = (id) => {
+    const target = projectList.find((p) => p.id === id);
+    if (!target) return;
+
+    const parsedTags = typeof inlineForm.tags === 'string'
+      ? inlineForm.tags.split(',').map((t) => t.trim()).filter(Boolean)
+      : target.tags;
+
+    const updated = {
+      ...target,
+      title: inlineForm.title.trim() || target.title,
+      client: inlineForm.client.trim() || target.client,
+      category: inlineForm.category || target.category,
+      heroMetric: inlineForm.heroMetric.trim() || target.heroMetric,
+      status: inlineForm.status || target.status,
+      tags: parsedTags.length > 0 ? parsedTags : target.tags,
+    };
+
+    const updatedList = projectList.map((p) => (p.id === id ? updated : p));
+    saveProjects(updatedList, `⚡ Updated "${updated.title}" in real time!`);
+    setInlineEditId(null);
+  };
+
+  // Real-Time Full Edit Modal State
+  const [editingProject, setEditingProject] = useState(null);
+
+  const handleOpenEditModal = (p) => {
+    setEditingProject({
+      ...p,
+      type: p.type || `${p.category} Solution`,
+      year: p.year || '2026',
+      heroMetric: p.heroMetric || '',
+      secondaryMetric: p.secondaryMetric || '',
+      tagline: p.tagline || '',
+      description: p.description || '',
+      tagsInput: Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || ''),
+    });
+  };
+
+  const handleSaveEditModal = (e) => {
+    e?.preventDefault();
+    if (!editingProject) return;
+
+    const parsedTags = typeof editingProject.tagsInput === 'string'
+      ? editingProject.tagsInput.split(',').map((t) => t.trim()).filter(Boolean)
+      : (editingProject.tags || []);
+
+    const updated = {
+      ...editingProject,
+      title: editingProject.title.trim() || 'Untitled Project',
+      client: editingProject.client.trim() || 'Enterprise Client',
+      category: editingProject.category || 'Web Platforms',
+      type: editingProject.type?.trim() || `${editingProject.category} Solution`,
+      year: editingProject.year?.trim() || '2026',
+      heroMetric: editingProject.heroMetric?.trim() || '⚡ Production Ready',
+      secondaryMetric: editingProject.secondaryMetric?.trim() || '🔒 Enterprise SLA',
+      tagline: editingProject.tagline?.trim() || '',
+      description: editingProject.description?.trim() || '',
+      tags: parsedTags.length > 0 ? parsedTags : ['React', 'Node.js'],
+    };
+    delete updated.tagsInput;
+
+    const updatedList = projectList.map((p) => (p.id === updated.id ? updated : p));
+    saveProjects(updatedList, `⚡ Synced "${updated.title}" changes to live portfolio!`);
+    setEditingProject(null);
+  };
+
+  const handleResetDefaults = () => {
+    if (window.confirm('Restore all 8 showcase projects back to default portfolio state? Custom changes will be reset.')) {
+      const reset = resetProjectsToDefault();
+      setProjectList(reset);
+      showToast('🔄 Restored default 8 showcase projects');
+    }
+  };
 
   const handleLogin = (e) => {
     e?.preventDefault();
@@ -242,13 +274,15 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
       }
       return p;
     });
-    saveProjects(updated);
+    const target = updated.find((p) => p.id === id);
+    saveProjects(updated, `⚡ Project "${target?.title}" set to ${target?.status}`);
   };
 
   const deleteProject = (id) => {
-    if (window.confirm('Are you sure you want to remove this project?')) {
+    const target = projectList.find((p) => p.id === id);
+    if (window.confirm(`Are you sure you want to remove "${target?.title || 'this project'}"?`)) {
       const updated = projectList.filter((p) => p.id !== id);
-      saveProjects(updated);
+      saveProjects(updated, `🗑️ Removed "${target?.title || 'Project'}" from showcase`);
     }
   };
 
@@ -258,22 +292,31 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
 
     const created = {
       id: 'proj-' + Date.now(),
-      title: newProject.title,
-      client: newProject.client || 'Enterprise Client',
-      category: newProject.category,
+      title: newProject.title.trim(),
+      client: newProject.client.trim() || 'Enterprise Client',
+      category: newProject.category || 'Web Platforms',
+      type: newProject.type?.trim() || `${newProject.category} Platform`,
       status: 'Published',
-      year: '2026',
-      heroMetric: newProject.heroMetric || '⚡ Production Ready',
-      tags: newProject.tags ? newProject.tags.split(',').map((t) => t.trim()) : ['React', 'Node.js'],
+      year: new Date().getFullYear().toString(),
+      heroMetric: newProject.heroMetric.trim() || '⚡ Production Ready',
+      secondaryMetric: newProject.secondaryMetric?.trim() || '🛡️ 99.9% Uptime',
+      tagline: newProject.tagline?.trim() || 'High-performance digital engineering solution built for enterprise scale.',
+      description: newProject.description?.trim() || 'Custom engineered software system delivered with cutting-edge architectural patterns.',
+      tags: newProject.tags ? newProject.tags.split(',').map((t) => t.trim()).filter(Boolean) : ['React', 'Node.js', 'Cloud'],
+      accentColor: '#c8ff3d',
     };
 
-    saveProjects([created, ...projectList]);
+    saveProjects([created, ...projectList], `✨ Added "${created.title}" to live portfolio!`);
     setIsAddModalOpen(false);
     setNewProject({
       title: '',
       client: '',
       category: 'Web Platforms',
+      type: '',
       heroMetric: '',
+      secondaryMetric: '',
+      tagline: '',
+      description: '',
       tags: '',
     });
   };
@@ -932,32 +975,124 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
             }}
           >
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: '0 0 4px 0' }}>
-                Portfolio Showcase Manager
-              </h2>
-              <p style={{ fontSize: '13px', color: 'rgba(237, 233, 232, 0.6)', margin: 0 }}>
-                Control projects visible on the public /projects portfolio showcase page.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                  Portfolio Showcase Manager
+                </h2>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '3px 9px',
+                    borderRadius: '100px',
+                    backgroundColor: 'rgba(200, 255, 61, 0.1)',
+                    border: '1px solid rgba(200, 255, 61, 0.3)',
+                    color: '#c8ff3d',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      backgroundColor: '#c8ff3d',
+                      boxShadow: '0 0 8px #c8ff3d',
+                    }}
+                  />
+                  Real-Time Live Sync Active
+                </span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'rgba(237, 233, 232, 0.6)', margin: '4px 0 0 0' }}>
+                Control & live edit projects visible on the public /projects portfolio showcase page.
               </p>
             </div>
 
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                backgroundColor: '#c8ff3d',
-                color: '#000000',
-                fontWeight: 600,
-                fontSize: '13px',
-                padding: '10px 18px',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <Plus size={16} /> Add New Project
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleResetDefaults}
+                title="Restore default 8 showcase projects"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  color: 'rgba(237, 233, 232, 0.75)',
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-mono)',
+                  padding: '9px 13px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(237, 233, 232, 0.12)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                  e.currentTarget.style.color = 'rgba(237, 233, 232, 0.75)';
+                }}
+              >
+                <RefreshCw size={13} /> Reset Defaults
+              </button>
+
+              {onNavigateProjects && (
+                <button
+                  type="button"
+                  onClick={onNavigateProjects}
+                  title="View live public showcase"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                    color: 'rgba(237, 233, 232, 0.75)',
+                    fontSize: '12px',
+                    padding: '9px 13px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(237, 233, 232, 0.12)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.color = '#c8ff3d';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                    e.currentTarget.style.color = 'rgba(237, 233, 232, 0.75)';
+                  }}
+                >
+                  <ExternalLink size={13} /> View Live Showcase
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: '#c8ff3d',
+                  color: '#000000',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  padding: '9px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <Plus size={16} /> Add New Project
+              </button>
+            </div>
           </div>
 
           {/* Project Items Table */}
@@ -983,104 +1118,380 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                       textTransform: 'uppercase',
                     }}
                   >
-                    <th style={{ padding: '14px 20px' }}>Project Name</th>
-                    <th style={{ padding: '14px 20px' }}>Client</th>
-                    <th style={{ padding: '14px 20px' }}>Category</th>
-                    <th style={{ padding: '14px 20px' }}>Key Metric</th>
-                    <th style={{ padding: '14px 20px' }}>Status</th>
-                    <th style={{ padding: '14px 20px', textAlign: 'right' }}>Actions</th>
+                    <th style={{ padding: '14px 20px', minWidth: '240px' }}>Project Name</th>
+                    <th style={{ padding: '14px 20px', minWidth: '160px' }}>Client</th>
+                    <th style={{ padding: '14px 20px', minWidth: '150px' }}>Category</th>
+                    <th style={{ padding: '14px 20px', minWidth: '180px' }}>Key Metric</th>
+                    <th style={{ padding: '14px 20px', minWidth: '120px' }}>Status</th>
+                    <th style={{ padding: '14px 20px', textAlign: 'right', minWidth: '190px' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projectList.map((p) => (
-                    <tr
-                      key={p.id}
-                      style={{
-                        borderBottom: '1px solid rgba(237, 233, 232, 0.06)',
-                        transition: 'background-color 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <td style={{ padding: '16px 20px' }}>
-                        <div style={{ fontWeight: 600, color: '#ffffff' }}>{p.title}</div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c8ff3d', marginTop: '2px' }}>
-                          {p.tags?.join(' • ')}
-                        </div>
-                      </td>
-                      <td style={{ padding: '16px 20px', color: 'rgba(237, 233, 232, 0.8)' }}>
-                        {p.client}
-                      </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span
+                  {projectList.map((p) => {
+                    const isInline = inlineEditId === p.id;
+
+                    if (isInline) {
+                      return (
+                        <tr
+                          key={p.id}
                           style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '11px',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            color: '#ede9e8',
+                            backgroundColor: 'rgba(200, 255, 61, 0.04)',
+                            borderBottom: '1px solid rgba(200, 255, 61, 0.25)',
                           }}
                         >
-                          {p.category}
-                        </span>
-                      </td>
-                      <td style={{ padding: '16px 20px', fontFamily: 'var(--font-mono)', color: '#c8ff3d' }}>
-                        {p.heroMetric}
-                      </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <button
-                          onClick={() => toggleProjectStatus(p.id)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '11px',
-                            padding: '4px 10px',
-                            borderRadius: '100px',
-                            border: 'none',
-                            cursor: 'pointer',
-                            backgroundColor:
-                              p.status === 'Published'
-                                ? 'rgba(200, 255, 61, 0.15)'
-                                : 'rgba(255, 255, 255, 0.08)',
-                            color: p.status === 'Published' ? '#c8ff3d' : 'rgba(237, 233, 232, 0.5)',
-                          }}
-                        >
+                          {/* Inline Project Name & Tags */}
+                          <td style={{ padding: '12px 16px' }}>
+                            <input
+                              type="text"
+                              value={inlineForm.title}
+                              onChange={(e) => setInlineForm({ ...inlineForm, title: e.target.value })}
+                              placeholder="Project title..."
+                              style={{
+                                width: '100%',
+                                padding: '6px 10px',
+                                backgroundColor: '#070707',
+                                border: '1px solid rgba(200, 255, 61, 0.4)',
+                                borderRadius: '6px',
+                                color: '#ffffff',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                outline: 'none',
+                                marginBottom: '5px',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                            <input
+                              type="text"
+                              value={inlineForm.tags}
+                              onChange={(e) => setInlineForm({ ...inlineForm, tags: e.target.value })}
+                              placeholder="Tags (comma separated)..."
+                              style={{
+                                width: '100%',
+                                padding: '4px 8px',
+                                backgroundColor: '#070707',
+                                border: '1px solid rgba(237, 233, 232, 0.15)',
+                                borderRadius: '5px',
+                                color: '#c8ff3d',
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '11px',
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                          </td>
+
+                          {/* Inline Client */}
+                          <td style={{ padding: '12px 16px' }}>
+                            <input
+                              type="text"
+                              value={inlineForm.client}
+                              onChange={(e) => setInlineForm({ ...inlineForm, client: e.target.value })}
+                              placeholder="Client name..."
+                              style={{
+                                width: '100%',
+                                padding: '6px 10px',
+                                backgroundColor: '#070707',
+                                border: '1px solid rgba(237, 233, 232, 0.2)',
+                                borderRadius: '6px',
+                                color: '#ffffff',
+                                fontSize: '12px',
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                          </td>
+
+                          {/* Inline Category */}
+                          <td style={{ padding: '12px 16px' }}>
+                            <select
+                              value={inlineForm.category}
+                              onChange={(e) => setInlineForm({ ...inlineForm, category: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '6px 8px',
+                                backgroundColor: '#070707',
+                                border: '1px solid rgba(237, 233, 232, 0.2)',
+                                borderRadius: '6px',
+                                color: '#ffffff',
+                                fontSize: '12px',
+                                outline: 'none',
+                              }}
+                            >
+                              <option value="Web Platforms">Web Platforms</option>
+                              <option value="Mobile Apps">Mobile Apps</option>
+                              <option value="Enterprise SaaS">Enterprise SaaS</option>
+                              <option value="AI & Automation">AI & Automation</option>
+                            </select>
+                          </td>
+
+                          {/* Inline Key Metric */}
+                          <td style={{ padding: '12px 16px' }}>
+                            <input
+                              type="text"
+                              value={inlineForm.heroMetric}
+                              onChange={(e) => setInlineForm({ ...inlineForm, heroMetric: e.target.value })}
+                              placeholder="Key metric..."
+                              style={{
+                                width: '100%',
+                                padding: '6px 8px',
+                                backgroundColor: '#070707',
+                                border: '1px solid rgba(200, 255, 61, 0.4)',
+                                borderRadius: '6px',
+                                color: '#c8ff3d',
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '12px',
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                          </td>
+
+                          {/* Inline Status */}
+                          <td style={{ padding: '12px 16px' }}>
+                            <select
+                              value={inlineForm.status}
+                              onChange={(e) => setInlineForm({ ...inlineForm, status: e.target.value })}
+                              style={{
+                                padding: '5px 8px',
+                                backgroundColor: '#070707',
+                                border: '1px solid rgba(237, 233, 232, 0.2)',
+                                borderRadius: '6px',
+                                color: inlineForm.status === 'Published' ? '#c8ff3d' : 'rgba(237, 233, 232, 0.6)',
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '11px',
+                                outline: 'none',
+                              }}
+                            >
+                              <option value="Published">Published</option>
+                              <option value="Draft">Draft</option>
+                            </select>
+                          </td>
+
+                          {/* Inline Actions */}
+                          <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => saveInlineEdit(p.id)}
+                                title="Save changes (Real-Time Live Sync)"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  backgroundColor: '#c8ff3d',
+                                  color: '#000000',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  padding: '6px 11px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <Check size={14} /> Save
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelInlineEdit}
+                                title="Cancel inline edit"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                  color: 'rgba(237, 233, 232, 0.8)',
+                                  border: '1px solid rgba(237, 233, 232, 0.15)',
+                                  borderRadius: '6px',
+                                  padding: '6px 8px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <X size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  cancelInlineEdit();
+                                  handleOpenEditModal(p);
+                                }}
+                                title="Open Full Editor Modal"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                  color: '#c8ff3d',
+                                  border: '1px solid rgba(200, 255, 61, 0.3)',
+                                  borderRadius: '6px',
+                                  padding: '6px 8px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <Sliders size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return (
+                      <tr
+                        key={p.id}
+                        style={{
+                          borderBottom: '1px solid rgba(237, 233, 232, 0.06)',
+                          transition: 'background-color 0.15s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <td style={{ padding: '16px 20px' }}>
+                          <div style={{ fontWeight: 600, color: '#ffffff' }}>{p.title}</div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c8ff3d', marginTop: '2px' }}>
+                            {Array.isArray(p.tags) ? p.tags.join(' • ') : p.tags}
+                          </div>
+                        </td>
+                        <td style={{ padding: '16px 20px', color: 'rgba(237, 233, 232, 0.8)' }}>
+                          {p.client}
+                        </td>
+                        <td style={{ padding: '16px 20px' }}>
                           <span
                             style={{
-                              width: '5px',
-                              height: '5px',
-                              borderRadius: '50%',
-                              backgroundColor: p.status === 'Published' ? '#c8ff3d' : '#888',
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '11px',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              color: '#ede9e8',
                             }}
-                          />
-                          {p.status}
-                        </button>
-                      </td>
-                      <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => deleteProject(p.id)}
-                          title="Delete project"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(237, 233, 232, 0.5)',
-                            cursor: 'pointer',
-                            padding: '6px',
-                            borderRadius: '6px',
-                            transition: 'color 0.15s',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = '#ff4d4f')}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 233, 232, 0.5)')}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                          >
+                            {p.category}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px 20px', fontFamily: 'var(--font-mono)', color: '#c8ff3d' }}>
+                          {p.heroMetric}
+                        </td>
+                        <td style={{ padding: '16px 20px' }}>
+                          <button
+                            type="button"
+                            onClick={() => toggleProjectStatus(p.id)}
+                            title="Toggle status (live real-time sync)"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '11px',
+                              padding: '4px 10px',
+                              borderRadius: '100px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              backgroundColor:
+                                p.status === 'Published'
+                                  ? 'rgba(200, 255, 61, 0.15)'
+                                  : 'rgba(255, 255, 255, 0.08)',
+                              color: p.status === 'Published' ? '#c8ff3d' : 'rgba(237, 233, 232, 0.5)',
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: '5px',
+                                height: '5px',
+                                borderRadius: '50%',
+                                backgroundColor: p.status === 'Published' ? '#c8ff3d' : '#888',
+                              }}
+                            />
+                            {p.status}
+                          </button>
+                        </td>
+                        <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+                            {/* Real-time Full Edit Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(p)}
+                              title="Full Project Editor (Real-Time Sync)"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                backgroundColor: 'rgba(200, 255, 61, 0.12)',
+                                border: '1px solid rgba(200, 255, 61, 0.3)',
+                                color: '#c8ff3d',
+                                borderRadius: '6px',
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#c8ff3d';
+                                e.currentTarget.style.color = '#000000';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(200, 255, 61, 0.12)';
+                                e.currentTarget.style.color = '#c8ff3d';
+                              }}
+                            >
+                              <Edit3 size={13} /> Edit
+                            </button>
+
+                            {/* Quick Inline Edit Button */}
+                            <button
+                              type="button"
+                              onClick={() => startInlineEdit(p)}
+                              title="Quick Table Edit"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(237, 233, 232, 0.12)',
+                                color: 'rgba(237, 233, 232, 0.75)',
+                                borderRadius: '6px',
+                                padding: '6px 10px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
+                                e.currentTarget.style.color = '#ffffff';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                                e.currentTarget.style.color = 'rgba(237, 233, 232, 0.75)';
+                              }}
+                            >
+                              <Sliders size={13} /> Quick
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              onClick={() => deleteProject(p.id)}
+                              title="Delete project"
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'rgba(237, 233, 232, 0.45)',
+                                cursor: 'pointer',
+                                padding: '6px',
+                                borderRadius: '6px',
+                                transition: 'color 0.15s',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = '#ff4d4f')}
+                              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 233, 232, 0.45)')}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1583,6 +1994,509 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4. REAL-TIME FULL EDIT PROJECT MODAL */}
+      {editingProject && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(16px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            overflowY: 'auto',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#0c0b0b',
+              border: '1px solid rgba(200, 255, 61, 0.3)',
+              borderRadius: '20px',
+              maxWidth: '720px',
+              width: '100%',
+              padding: '28px 32px',
+              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.9), 0 0 30px rgba(200, 255, 61, 0.1)',
+              position: 'relative',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: '#c8ff3d',
+                      backgroundColor: 'rgba(200, 255, 61, 0.12)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(200, 255, 61, 0.25)',
+                    }}
+                  >
+                    REAL-TIME EDITOR
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'rgba(237, 233, 232, 0.45)' }}>ID: {editingProject.id}</span>
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                  Edit Project Details
+                </h3>
+                <p style={{ fontSize: '13px', color: 'rgba(237, 233, 232, 0.6)', margin: '4px 0 0 0' }}>
+                  Changes sync immediately across open sessions and the public /projects showcase.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setEditingProject(null)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(237, 233, 232, 0.15)',
+                  borderRadius: '8px',
+                  color: 'rgba(237, 233, 232, 0.7)',
+                  cursor: 'pointer',
+                  padding: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditModal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Row 1: Title & Client */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Project Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProject.title}
+                    onChange={(e) => setEditingProject({ ...editingProject, title: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(200, 255, 61, 0.4)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Client Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProject.client}
+                    onChange={(e) => setEditingProject({ ...editingProject, client: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(237, 233, 232, 0.15)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Category & Status & Year */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 0.8fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Category
+                  </label>
+                  <select
+                    value={editingProject.category}
+                    onChange={(e) => setEditingProject({ ...editingProject, category: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: '#111',
+                      border: '1px solid rgba(237, 233, 232, 0.18)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="Web Platforms">Web Platforms</option>
+                    <option value="Mobile Apps">Mobile Apps</option>
+                    <option value="Enterprise SaaS">Enterprise SaaS</option>
+                    <option value="AI & Automation">AI & Automation</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Publication Status
+                  </label>
+                  <select
+                    value={editingProject.status}
+                    onChange={(e) => setEditingProject({ ...editingProject, status: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: '#111',
+                      border: '1px solid rgba(237, 233, 232, 0.18)',
+                      borderRadius: '8px',
+                      color: editingProject.status === 'Published' ? '#c8ff3d' : 'rgba(237, 233, 232, 0.6)',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="Published">Published (Live on /projects)</option>
+                    <option value="Draft">Draft (Hidden from public)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Year
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProject.year}
+                    onChange={(e) => setEditingProject({ ...editingProject, year: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(237, 233, 232, 0.15)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Subtitle / Type & Metrics */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Project Type / Subtitle
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProject.type}
+                    onChange={(e) => setEditingProject({ ...editingProject, type: e.target.value })}
+                    placeholder="e.g. Sub-Second Global Storefront"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(237, 233, 232, 0.15)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Primary Key Metric
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProject.heroMetric}
+                    onChange={(e) => setEditingProject({ ...editingProject, heroMetric: e.target.value })}
+                    placeholder="e.g. 💳 $45M+ Monthly Volume"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(200, 255, 61, 0.4)',
+                      borderRadius: '8px',
+                      color: '#c8ff3d',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Secondary Metric & Tags */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Secondary Metric / Certification
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProject.secondaryMetric}
+                    onChange={(e) => setEditingProject({ ...editingProject, secondaryMetric: e.target.value })}
+                    placeholder="e.g. 🔒 SOC2 & PCI-DSS L1"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(237, 233, 232, 0.15)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                    Tech Stack Tags (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProject.tagsInput}
+                    onChange={(e) => setEditingProject({ ...editingProject, tagsInput: e.target.value })}
+                    placeholder="Next.js 15, Node.js, Stripe, Redis"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(237, 233, 232, 0.15)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Row 5: Tagline */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                  Tagline (One-liner Summary)
+                </label>
+                <input
+                  type="text"
+                  value={editingProject.tagline}
+                  onChange={(e) => setEditingProject({ ...editingProject, tagline: e.target.value })}
+                  placeholder="Sub-second headless e-commerce store with dynamic 3D product previews..."
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(237, 233, 232, 0.15)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Row 6: Description */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(237, 233, 232, 0.7)', marginBottom: '5px' }}>
+                  Detailed Description / Case Overview
+                </label>
+                <textarea
+                  rows={3}
+                  value={editingProject.description}
+                  onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
+                  placeholder="Architected a modern banking dashboard supporting multi-currency accounts..."
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(237, 233, 232, 0.15)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    lineHeight: 1.5,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              {/* Live Preview Card */}
+              <div
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px dashed rgba(200, 255, 61, 0.3)',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  marginTop: '4px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c8ff3d' }}>
+                    ⚡ LIVE CARD PREVIEW (AS SEEN ON /PROJECTS)
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '10px',
+                      color: editingProject.status === 'Published' ? '#c8ff3d' : '#888',
+                    }}
+                  >
+                    ● {editingProject.status}
+                  </span>
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
+                  {editingProject.title || 'Untitled Project'}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(237, 233, 232, 0.65)', marginTop: '2px' }}>
+                  {editingProject.client || 'Enterprise Client'} • {editingProject.category}
+                </div>
+                {editingProject.tagline && (
+                  <div style={{ fontSize: '12px', color: 'rgba(237, 233, 232, 0.85)', marginTop: '6px', lineHeight: 1.4 }}>
+                    {editingProject.tagline}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  {editingProject.heroMetric && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        color: '#c8ff3d',
+                        backgroundColor: 'rgba(200, 255, 61, 0.1)',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      {editingProject.heroMetric}
+                    </span>
+                  )}
+                  {editingProject.secondaryMetric && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        color: 'rgba(237, 233, 232, 0.7)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      {editingProject.secondaryMetric}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    backgroundColor: '#c8ff3d',
+                    color: '#000000',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Check size={16} /> Save Changes & Broadcast Live
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingProject(null)}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    color: '#ede9e8',
+                    border: '1px solid rgba(237, 233, 232, 0.15)',
+                    fontSize: '13px',
+                    padding: '12px 20px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. FLOATING REAL-TIME SYNC TOAST */}
+      {realtimeToast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 99999,
+            backgroundColor: 'rgba(12, 11, 11, 0.95)',
+            border: '1px solid #c8ff3d',
+            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.8), 0 0 24px rgba(200, 255, 61, 0.25)',
+            borderRadius: '12px',
+            padding: '12px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            backdropFilter: 'blur(20px)',
+            maxWidth: '460px',
+          }}
+        >
+          <span
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#c8ff3d',
+              boxShadow: '0 0 10px #c8ff3d',
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c8ff3d', fontWeight: 600 }}>
+              REAL-TIME BROADCAST ACTIVE
+            </span>
+            <span style={{ fontSize: '13px', color: '#ffffff', marginTop: '2px' }}>
+              {realtimeToast}
+            </span>
           </div>
         </div>
       )}
