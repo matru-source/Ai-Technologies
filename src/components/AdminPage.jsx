@@ -48,6 +48,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
     return sessionStorage.getItem('aitech_admin_auth') === 'true';
   });
   const [passcode, setPasscode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
 
   // Active console tab
@@ -378,16 +379,16 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
           </p>
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <input
-                type="password"
-                placeholder="Enter Admin Passcode..."
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter Admin Password..."
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
                 autoFocus
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
+                  padding: '12px 42px 12px 16px',
                   backgroundColor: 'rgba(255, 255, 255, 0.04)',
                   border: authError ? '1px solid #ff4d4f' : '1px solid rgba(237, 233, 232, 0.15)',
                   borderRadius: '10px',
@@ -396,12 +397,34 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                   outline: 'none',
                   boxSizing: 'border-box',
                   fontFamily: 'var(--font-mono)',
-                  letterSpacing: '0.08em',
+                  letterSpacing: showPassword ? 'normal' : '0.12em',
                   transition: 'border-color 0.2s',
                 }}
                 onFocus={(e) => (e.target.style.borderColor = '#c8ff3d')}
                 onBlur={(e) => (e.target.style.borderColor = authError ? '#ff4d4f' : 'rgba(237, 233, 232, 0.15)')}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  background: 'none',
+                  border: 'none',
+                  color: showPassword ? '#c8ff3d' : 'rgba(237, 233, 232, 0.5)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#c8ff3d')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = showPassword ? '#c8ff3d' : 'rgba(237, 233, 232, 0.5)')}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
 
             {authError && (
