@@ -352,11 +352,10 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                 style={{
                   backgroundColor: 'rgba(12, 11, 11, 0.85)',
                   border: '1px solid rgba(237, 233, 232, 0.12)',
-                  borderRadius: '18px',
+                  borderRadius: '16px',
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between',
                   boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
                   transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                   position: 'relative',
@@ -373,333 +372,377 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                   e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.45)';
                 }}
               >
-                {/* Visual Top Preview Frame */}
+                {/* 1. Card Top Bar: Browser Window Dots & Category Pill */}
                 <div
                   style={{
-                    height: '190px',
-                    background: 'linear-gradient(180deg, rgba(24, 23, 23, 0.95) 0%, rgba(10, 10, 10, 0.95) 100%)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px 14px',
+                    background: 'rgba(18, 18, 18, 0.95)',
                     borderBottom: '1px solid rgba(237, 233, 232, 0.08)',
                     position: 'relative',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    padding: '16px',
+                    zIndex: 2,
                   }}
                 >
-                  {/* Subtle Glow Backdrop */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-40px',
-                      right: '-40px',
-                      width: '160px',
-                      height: '160px',
-                      background: `radial-gradient(circle, ${p.accentColor}25 0%, transparent 70%)`,
-                      pointerEvents: 'none',
-                    }}
-                  />
-
-                  {/* Top Bar of the Card Preview: Browser Dot Controls & Category Pill */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff5f56' }} />
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ffbd2e' }} />
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#27c93f' }} />
-                    </div>
-
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '10px',
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        background: 'rgba(255, 255, 255, 0.06)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: 'rgba(237, 233, 232, 0.75)',
-                      }}
-                    >
-                      {p.category}
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff5f56' }} />
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ffbd2e' }} />
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#27c93f' }} />
                   </div>
 
-                  {/* Project Screenshot / Homepage Image (if provided by admin) */}
-                  {p.image ? (
-                    <div
-                      style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '165px',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        marginBottom: '12px',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                        backgroundColor: '#0a0a0a',
-                      }}
-                    >
-                      <img
-                        src={p.image}
-                        alt={`${p.title} Preview`}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block',
-                          transition: 'transform 0.35s ease',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                      />
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: '6px',
-                          right: '6px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                          backdropFilter: 'blur(8px)',
-                          padding: '3px 7px',
-                          borderRadius: '5px',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          color: '#c8ff3d',
-                        }}
-                      >
-                        <Globe size={10} /> Live Preview
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {/* Center Schematic Visual Diagram */}
                   <div
                     style={{
-                      position: 'relative',
-                      zIndex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px',
-                      padding: '4px 0',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '9.5px',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: 'rgba(237, 233, 232, 0.75)',
                     }}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            backgroundColor: 'rgba(200, 255, 61, 0.12)',
-                            border: '1px solid rgba(200, 255, 61, 0.3)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#c8ff3d',
-                          }}
-                        >
-                          {p.category === 'AI & Automation' ? (
-                            <Cpu size={15} />
-                          ) : p.category === 'Mobile Apps' ? (
-                            <Smartphone size={15} />
-                          ) : p.category === 'Enterprise SaaS' ? (
-                            <Shield size={15} />
-                          ) : (
-                            <Globe size={15} />
-                          )}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '11px', color: 'rgba(237, 233, 232, 0.5)', fontFamily: 'var(--font-mono)' }}>
-                            CLIENT / SPEC
-                          </div>
-                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#ffffff' }}>
-                            {p.client}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '10px',
-                          fontFamily: 'var(--font-mono)',
-                          color: '#c8ff3d',
-                          background: 'rgba(200, 255, 61, 0.08)',
-                          padding: '3px 8px',
-                          borderRadius: '100px',
-                          border: '1px solid rgba(200, 255, 61, 0.25)',
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: '5px',
-                            height: '5px',
-                            borderRadius: '50%',
-                            backgroundColor: '#c8ff3d',
-                            boxShadow: '0 0 6px #c8ff3d',
-                          }}
-                        />
-                        <span>{p.status}</span>
-                      </div>
-                    </div>
-
-                    {/* Metric Highlight Ribbon */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        marginTop: '4px',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '11px',
-                          color: '#ede9e8',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          padding: '3px 8px',
-                          borderRadius: '4px',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                        }}
-                      >
-                        {p.heroMetric}
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '11px',
-                          color: '#c8ff3d',
-                          background: 'rgba(200, 255, 61, 0.08)',
-                          padding: '3px 8px',
-                          borderRadius: '4px',
-                          border: '1px solid rgba(200, 255, 61, 0.2)',
-                        }}
-                      >
-                        {p.secondaryMetric}
-                      </span>
-                    </div>
+                    {p.category}
                   </div>
                 </div>
 
-                {/* Card Content Details */}
-                <div
-                  style={{
-                    padding: '22px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    flex: 1,
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div>
-                    {/* Project Title */}
-                    <h3
+                {/* 2. Project Screenshot Image Preview (Large & Fully Visible) */}
+                {p.image ? (
+                  <div
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '215px',
+                      overflow: 'hidden',
+                      backgroundColor: '#050505',
+                      borderBottom: '1px solid rgba(237, 233, 232, 0.08)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setSelectedProject(p)}
+                  >
+                    <img
+                      src={p.image}
+                      alt={`${p.title} Preview`}
                       style={{
-                        fontFamily: '"Geist", sans-serif',
-                        fontSize: '18px',
-                        fontWeight: 700,
-                        color: '#ffffff',
-                        margin: '0 0 6px 0',
-                        lineHeight: 1.25,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'top',
+                        display: 'block',
+                        transition: 'transform 0.4s ease',
                       }}
-                    >
-                      {p.title}
-                    </h3>
-
+                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.03)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    />
                     <div
                       style={{
+                        position: 'absolute',
+                        bottom: '8px',
+                        right: '8px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid rgba(200, 255, 61, 0.35)',
                         fontFamily: 'var(--font-mono)',
-                        fontSize: '11px',
+                        fontSize: '9.5px',
                         color: '#c8ff3d',
-                        marginBottom: '12px',
-                        letterSpacing: '0.04em',
+                        pointerEvents: 'none',
                       }}
                     >
-                      {p.type} • {p.year}
+                      <Globe size={10} /> Live Preview
                     </div>
-
-                    <p
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '140px',
+                      overflow: 'hidden',
+                      background: 'linear-gradient(180deg, rgba(22, 22, 22, 0.95) 0%, rgba(10, 10, 10, 0.95) 100%)',
+                      borderBottom: '1px solid rgba(237, 233, 232, 0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div
                       style={{
-                        fontSize: '13px',
-                        lineHeight: 1.55,
-                        color: 'rgba(237, 233, 232, 0.68)',
-                        margin: '0 0 18px 0',
-                        minHeight: '60px',
+                        position: 'absolute',
+                        top: '-30px',
+                        right: '-30px',
+                        width: '140px',
+                        height: '140px',
+                        background: `radial-gradient(circle, ${p.accentColor}30 0%, transparent 70%)`,
+                        pointerEvents: 'none',
                       }}
-                    >
-                      {p.tagline}
-                    </p>
-
-                    {/* Tech Stack Chips */}
+                    />
                     <div
                       style={{
                         display: 'flex',
-                        flexWrap: 'wrap',
+                        flexDirection: 'column',
+                        alignItems: 'center',
                         gap: '6px',
-                        marginBottom: '20px',
+                        zIndex: 1,
                       }}
                     >
-                      {p.tags.slice(0, 4).map((tech, idx) => (
-                        <span
-                          key={idx}
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '10.5px',
-                            color: 'rgba(237, 233, 232, 0.7)',
-                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid rgba(237, 233, 232, 0.08)',
-                            padding: '3px 7px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                      {p.tags.length > 4 && (
-                        <span
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '10.5px',
-                            color: '#c8ff3d',
-                            backgroundColor: 'rgba(200, 255, 61, 0.06)',
-                            border: '1px solid rgba(200, 255, 61, 0.2)',
-                            padding: '3px 7px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          +{p.tags.length - 4}
-                        </span>
-                      )}
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(200, 255, 61, 0.1)',
+                          border: '1px solid rgba(200, 255, 61, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#c8ff3d',
+                        }}
+                      >
+                        {p.category === 'AI & Automation' ? (
+                          <Cpu size={20} />
+                        ) : p.category === 'Mobile Apps' ? (
+                          <Smartphone size={20} />
+                        ) : p.category === 'Enterprise SaaS' ? (
+                          <Shield size={20} />
+                        ) : (
+                          <Globe size={20} />
+                        )}
+                      </div>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9.5px',
+                          letterSpacing: '0.08em',
+                          color: 'rgba(237, 233, 232, 0.5)',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Architecture Spec
+                      </span>
                     </div>
                   </div>
+                )}
 
-                  {/* Card Action Buttons */}
+                {/* 3. Client & Key Metric Ribbon (Compact & Tight) */}
+                <div
+                  style={{
+                    padding: '12px 16px 0 16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
-                      paddingTop: '16px',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                      <div
+                        style={{
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '5px',
+                          backgroundColor: 'rgba(200, 255, 61, 0.1)',
+                          border: '1px solid rgba(200, 255, 61, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#c8ff3d',
+                        }}
+                      >
+                        {p.category === 'AI & Automation' ? (
+                          <Cpu size={12} />
+                        ) : p.category === 'Mobile Apps' ? (
+                          <Smartphone size={12} />
+                        ) : p.category === 'Enterprise SaaS' ? (
+                          <Shield size={12} />
+                        ) : (
+                          <Globe size={12} />
+                        )}
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '10px', color: 'rgba(237, 233, 232, 0.45)', fontFamily: 'var(--font-mono)', marginRight: '5px' }}>
+                          CLIENT:
+                        </span>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#ffffff' }}>
+                          {p.client}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '9.5px',
+                        fontFamily: 'var(--font-mono)',
+                        color: '#c8ff3d',
+                        background: 'rgba(200, 255, 61, 0.08)',
+                        padding: '2px 7px',
+                        borderRadius: '100px',
+                        border: '1px solid rgba(200, 255, 61, 0.25)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          borderRadius: '50%',
+                          backgroundColor: '#c8ff3d',
+                          boxShadow: '0 0 6px #c8ff3d',
+                        }}
+                      />
+                      <span>{p.status}</span>
+                    </div>
+                  </div>
+
+                  {/* Metrics Ribbon */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10.5px',
+                        color: '#ede9e8',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        padding: '2px 7px',
+                        borderRadius: '4px',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      {p.heroMetric}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10.5px',
+                        color: '#c8ff3d',
+                        background: 'rgba(200, 255, 61, 0.08)',
+                        padding: '2px 7px',
+                        borderRadius: '4px',
+                        border: '1px solid rgba(200, 255, 61, 0.2)',
+                      }}
+                    >
+                      {p.secondaryMetric}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Card Content Details (Tightly spaced, zero awkward gaps) */}
+                <div
+                  style={{
+                    padding: '10px 16px 16px 16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                  }}
+                >
+                  {/* Project Title */}
+                  <h3
+                    style={{
+                      fontFamily: '"Geist", sans-serif',
+                      fontSize: '17px',
+                      fontWeight: 700,
+                      color: '#ffffff',
+                      margin: '0 0 3px 0',
+                      lineHeight: 1.25,
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setSelectedProject(p)}
+                  >
+                    {p.title}
+                  </h3>
+
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: '#c8ff3d',
+                      marginBottom: '8px',
+                      letterSpacing: '0.03em',
+                    }}
+                  >
+                    {p.type} • {p.year}
+                  </div>
+
+                  <p
+                    style={{
+                      fontSize: '12.5px',
+                      lineHeight: 1.45,
+                      color: 'rgba(237, 233, 232, 0.68)',
+                      margin: '0 0 10px 0',
+                    }}
+                  >
+                    {p.tagline}
+                  </p>
+
+                  {/* Tech Stack Chips */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '5px',
+                      marginBottom: '14px',
+                    }}
+                  >
+                    {p.tags.slice(0, 4).map((tech, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          color: 'rgba(237, 233, 232, 0.7)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid rgba(237, 233, 232, 0.08)',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                    {p.tags.length > 4 && (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          color: '#c8ff3d',
+                          backgroundColor: 'rgba(200, 255, 61, 0.06)',
+                          border: '1px solid rgba(200, 255, 61, 0.2)',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        +{p.tags.length - 4}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Action Buttons: Anchored to Bottom */}
+                  <div
+                    style={{
+                      marginTop: 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      paddingTop: '12px',
                       borderTop: '1px solid rgba(237, 233, 232, 0.08)',
                     }}
                   >
@@ -714,8 +757,8 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                         backgroundColor: '#c8ff3d',
                         color: '#000000',
                         fontWeight: 600,
-                        fontSize: '12.5px',
-                        padding: '9px 14px',
+                        fontSize: '12px',
+                        padding: '8px 12px',
                         borderRadius: '7px',
                         border: 'none',
                         cursor: 'pointer',
@@ -730,7 +773,7 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                         e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      View Case Study <ArrowUpRight size={14} />
+                      View Case Study <ArrowUpRight size={13} />
                     </button>
 
                     <button
@@ -748,7 +791,7 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
                         border: '1px solid rgba(237, 233, 232, 0.14)',
                         color: 'rgba(237, 233, 232, 0.85)',
-                        padding: '9px 13px',
+                        padding: '8px 12px',
                         borderRadius: '7px',
                         fontSize: '12px',
                         fontWeight: 500,
