@@ -3,90 +3,6 @@ export const STORAGE_KEY = 'aitech_admin_projects';
 
 export const DEFAULT_PROJECTS = [
   {
-    id: 'stim-spark',
-    title: 'STIM Spark Oral Beauty D2C Storefront',
-    client: 'STIM Oral Care',
-    category: 'Web Platforms',
-    type: 'Headless D2C E-Commerce & Dental Wellness',
-    year: '2026',
-    status: 'Published',
-    heroMetric: '✨ 4.8★ Rating (250k+ Customers)',
-    secondaryMetric: '🚀 +65% Conversion Lift',
-    tagline: 'High-conversion D2C storefront and digital product experience for dentist-recommended oral beauty & dental wellness solutions.',
-    description: 'Architected and developed a responsive, ultra-fast D2C e-commerce platform for STIM Spark featuring dynamic shade selector guides, subscription repeat-orders, custom checkout bundles, and sub-second catalog navigation.',
-    tags: ['Shopify Plus', 'React', 'Headless Storefront', 'Tailwind CSS', 'Razorpay', 'Klaviyo'],
-    accentColor: '#ff7eeb',
-    visualType: 'ecommerce-cart',
-    liveUrl: 'https://stim.in/pages/home-page-spark',
-    image: 'https://images.unsplash.com/photo-1559599101-f09722fb4948?q=80&w=1200&auto=format&fit=crop',
-    challenge: 'Transitioning a legacy 60-year-old pharmaceutical dental brand into a youthful, direct-to-consumer oral beauty destination with high mobile conversion.',
-    solution: 'Designed an editorial-grade, modular e-commerce experience with interactive brushing routines, dentist endorsement carousels, and 1-click bundle checkouts.',
-    deliverables: ['Custom Shopify D2C Storefront', 'Interactive Whitening Shade Finder', 'Subscription Engine Integration', 'Sub-Second Edge CDN Optimization'],
-  },
-  {
-    id: 'inashot-life',
-    title: 'IN\'A Shot Organic Superfoods & Snacks',
-    client: 'IN\'A Shot Life',
-    category: 'Web Platforms',
-    type: 'Next-Gen Direct-to-Consumer Nutrition Store',
-    year: '2025',
-    status: 'Published',
-    heroMetric: '🌱 100k+ Packs Shipped',
-    secondaryMetric: '⚡ 0.8s Mobile Load Time',
-    tagline: 'Modern lifestyle nutrition and healthy snacking e-commerce store with seamless cart flows and automated fulfillment.',
-    description: 'Crafted a vibrant, modern D2C web storefront for IN\'A Shot healthy roasted edamame, seed blends, and wellness snacks. Engineered with mobile-first cart optimization, instant one-click UPI checkout, and automated inventory sync.',
-    tags: ['React', 'Next.js', 'Headless Commerce', 'Tailwind', 'Stripe', 'Framer Motion'],
-    accentColor: '#c8ff3d',
-    visualType: 'ecommerce-cart',
-    liveUrl: 'https://www.inashot.life/',
-    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=1200&auto=format&fit=crop',
-    challenge: 'Building high brand recall and friction-free purchase intent for innovative plant protein and seed cycle snacks in a crowded FMCG market.',
-    solution: 'Engineered a hyper-visual product discovery interface highlighting portion benefits, clean ingredients, and instant WhatsApp-assisted ordering.',
-    deliverables: ['Next-Gen D2C Storefront', 'Smart Cart Upsell Engine', 'Seed-Cycle Subscription Workflow', 'Automated Logistics Fulfillment Webhook'],
-  },
-  {
-    id: 'codewave-tech',
-    title: 'Codewave Design-Led AI Transformation',
-    client: 'Codewave Technologies',
-    category: 'Enterprise SaaS',
-    type: 'Enterprise Tech Platform & Product Showcase',
-    year: '2026',
-    status: 'Published',
-    heroMetric: '🌐 300+ Enterprise Deployments',
-    secondaryMetric: '🏆 Clutch Global Leader',
-    tagline: 'Design thinking-led digital transformation, cloud architecture, and AI-native product engineering platform.',
-    description: 'Designed and built an enterprise web platform for Codewave showcasing design thinking methodologies, AI-native software case studies, interactive project estimation tools, and multi-region client engagement workflows.',
-    tags: ['Next.js 15', 'TypeScript', 'Node.js', 'Tailwind CSS', 'GraphQL', 'AWS Cloud'],
-    accentColor: '#3df3ff',
-    visualType: 'infra-topology',
-    liveUrl: 'https://codewave.com/',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop',
-    challenge: 'Articulating complex multi-layered AI architectures and design thinking engineering capabilities to global enterprise CTOs and funded founders.',
-    solution: 'Engineered an interactive digital capability matrix with live case study walkthroughs, architectural teardowns, and automated consultation scheduling.',
-    deliverables: ['Global Enterprise Web Platform', 'Interactive Solution Architect Hub', 'Case Study Telemetry & Case Matrix', 'Lead Routing & CRM Bridge'],
-  },
-  {
-    id: 'lantern-brp',
-    title: 'Lantern BRP Next-Gen ERP & BRP Platform',
-    client: 'Lantern Partners AI',
-    category: 'Enterprise SaaS',
-    type: 'AI-Native Business Resource Planning SaaS',
-    year: '2026',
-    status: 'Published',
-    heroMetric: '⚡ 150+ System Integrations',
-    secondaryMetric: '📈 -40% Operational Overhead',
-    tagline: 'Intelligent AI-native Business Resource Planning platform connecting manufacturing, inventory, BOMs, and multi-entity operations.',
-    description: 'Engineered an enterprise-grade AI-native Business Resource Planning (BRP) cloud dashboard that replaces rigid legacy ERPs. Features unified BOM management, predictive inventory telemetry, automated dispatch routing, and multi-brand consolidation.',
-    tags: ['React', 'Python FastAPI', 'PostgreSQL', 'Redis', 'Docker', 'AI Workflows'],
-    accentColor: '#f59e0b',
-    visualType: 'fintech-chart',
-    liveUrl: 'https://lanternbrp.com/',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop',
-    challenge: 'Mid-market manufacturers and distributors were paralyzed by disjointed legacy ERPs, spreadsheets, and delayed inventory updates.',
-    solution: 'Architected a modular AI-native cloud dashboard unifying bill-of-materials, supply chain dispatch, and live factory telemetry into one single pane of glass.',
-    deliverables: ['AI Business Resource Planning SaaS Core', 'Unified Multi-Entity BOM Module', 'Live Fleet & Warehouse Telemetry', '150+ API Connector Ecosystem'],
-  },
-  {
     id: 'aura-fintech',
     title: 'Aura FinTech Global Banking',
     client: 'Aura Financial UK',
@@ -256,21 +172,22 @@ export const DEFAULT_PROJECTS = [
   },
 ];
 
+const REMOVED_PROJECT_IDS = ['stim-spark', 'inashot-life', 'codewave-tech', 'lantern-brp'];
+
 export function getStoredProjects() {
   if (typeof window === 'undefined') return DEFAULT_PROJECTS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_PROJECTS;
-    const parsed = JSON.parse(raw);
+    let parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      // Auto-migrate: ensure the 4 newly added real live projects are included at the top
-      const hasRealProjects = parsed.some((p) => p.id === 'stim-spark' || p.id === 'inashot-life');
-      if (!hasRealProjects) {
-        const topRealProjects = DEFAULT_PROJECTS.slice(0, 4);
-        const merged = [...topRealProjects, ...parsed.filter((p) => !topRealProjects.some((r) => r.id === p.id))];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-        return merged;
+      // Purge any removed legacy/temporary project IDs from localStorage
+      const filtered = parsed.filter((p) => !REMOVED_PROJECT_IDS.includes(p.id));
+      if (filtered.length !== parsed.length) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+        parsed = filtered;
       }
+      if (parsed.length === 0) return DEFAULT_PROJECTS;
       return parsed.map((p) => ({
         ...p,
         liveUrl: p.liveUrl !== undefined ? p.liveUrl : (DEFAULT_PROJECTS.find((d) => d.id === p.id)?.liveUrl || 'https://aitechnologies.org.in'),
