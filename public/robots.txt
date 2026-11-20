@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin-page
+Disallow: /dashboard
 
 # Sitemap definition
-Sitemap: https://aitechnologies.com/sitemap.xml
+Sitemap: https://aitechnologies.org.in/sitemap.xml
