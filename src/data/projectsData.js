@@ -3,6 +3,27 @@ export const STORAGE_KEY = 'aitech_admin_projects';
 
 export const DEFAULT_PROJECTS = [
   {
+    id: 'estate360',
+    title: 'Estate360 Ultra-Luxury Real Estate & Private Reserve',
+    client: 'Estate360 Private Reserve',
+    category: 'Web Platforms',
+    type: 'Ultra-Luxury Real Estate & Private Reserve Portal',
+    year: '2026',
+    status: 'Published',
+    heroMetric: '🏛️ Edition MMXXVI Private Reserve',
+    secondaryMetric: '🌐 8 Curated Trophy Mandates',
+    tagline: 'Sculpting the Horizon. A Sanctuary Beyond Measure.',
+    description: 'Architected a museum-grade global real estate acquisition portal for ultra-high-net-worth clients, featuring global market timezones, interactive architectural comparison matrix, private lease financing telemetry, and bespoke mandate management across Malibu, Manhattan, Cap d\'Antibes, and Geneva.',
+    tags: ['Next.js 15', 'React', 'Tailwind CSS', 'Framer Motion', 'TypeScript', 'Global Client Desk'],
+    accentColor: '#34d399',
+    visualType: 'fintech-chart',
+    liveUrl: 'https://estate360.aitechnologies.org.in/',
+    image: '/assets/projects/estate360.jpg',
+    challenge: 'High-net-worth property acquisitions demand absolute discretion, architectural precision, multi-currency financial structuring, and museum-grade digital presentation across worldwide timezones.',
+    solution: 'Engineered an editorial-grade real estate reserve featuring real-time client desk synchronization, side-by-side architectural spec comparisons, and seamless confidential mandate submission.',
+    deliverables: ['Global Private Reserve Web Portal', 'Multi-Property Comparison Engine', 'Private Client Desk Synchronization', 'Interactive Trophy Mandate Discovery'],
+  },
+  {
     id: 'zex4u',
     title: 'ZEX® Personal Digital Guardian',
     client: 'ZEX Security',
