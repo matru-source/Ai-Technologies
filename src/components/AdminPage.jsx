@@ -100,15 +100,19 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
 
   const reorderProject = (fromIndex, toIndex) => {
     if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
-    setProjectList((prevList) => {
-      if (fromIndex >= prevList.length || toIndex >= prevList.length) return prevList;
-      const updated = [...prevList];
-      const [movedItem] = updated.splice(fromIndex, 1);
-      updated.splice(toIndex, 0, movedItem);
-      saveStoredProjects(updated);
-      showToast(`⇅ Moved "${movedItem.title}" to position #${toIndex + 1}!`);
-      return updated;
-    });
+    if (fromIndex >= projectList.length || toIndex >= projectList.length) return;
+
+    const updated = [...projectList];
+    const [movedItem] = updated.splice(fromIndex, 1);
+    if (!movedItem) return;
+    updated.splice(toIndex, 0, movedItem);
+
+    // 1. Immediately update state with new array reference
+    setProjectList(updated);
+    // 2. Persist to localStorage and dispatch event for /projects
+    saveStoredProjects(updated);
+    // 3. Show feedback toast
+    showToast(`⇅ Moved "${movedItem.title}" to position #${toIndex + 1}!`);
   };
 
   const moveProjectPosition = (index, direction) => {
