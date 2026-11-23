@@ -35,6 +35,10 @@ import {
   Image as ImageIcon,
   Upload,
   Link2,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown,
 } from 'lucide-react';
 import aitechLogo from '../assets/aitech-logo-white-neon.png';
 import aitechEmblem from '../assets/aitech-hero-emblem.png';
@@ -89,6 +93,57 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
     setProjectList(newList);
     saveStoredProjects(newList);
     showToast(message);
+  };
+
+  // Drag and drop reordering state
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updated = [...projectList];
+    const [movedItem] = updated.splice(draggedIndex, 1);
+    updated.splice(targetIndex, 0, movedItem);
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    saveProjects(updated, `⇅ Reordered "${movedItem.title}" to position #${targetIndex + 1}!`);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const moveProjectPosition = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= projectList.length) return;
+
+    const updated = [...projectList];
+    const [movedItem] = updated.splice(index, 1);
+    updated.splice(targetIndex, 0, movedItem);
+
+    saveProjects(updated, `⇅ Moved "${movedItem.title}" ${direction < 0 ? 'up' : 'down'} to position #${targetIndex + 1}!`);
   };
 
   // Inquiries / Leads state
@@ -1043,7 +1098,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                 </span>
               </div>
               <p style={{ fontSize: '13px', color: 'rgba(237, 233, 232, 0.6)', margin: '4px 0 0 0' }}>
-                Control & live edit projects visible on the public /projects portfolio showcase page.
+                Drag rows by the handle (<span style={{ color: '#c8ff3d', fontWeight: 600 }}>⠿</span>) or use the <span style={{ color: '#c8ff3d', fontWeight: 600 }}>↑ / ↓</span> buttons to set the exact showcase order on the live website.
               </p>
             </div>
 
@@ -1154,6 +1209,11 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                       textTransform: 'uppercase',
                     }}
                   >
+                    <th style={{ padding: '14px 14px', width: '90px', textAlign: 'center' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <ArrowUpDown size={11} /> Order
+                      </span>
+                    </th>
                     <th style={{ padding: '14px 20px', minWidth: '240px' }}>Project Name</th>
                     <th style={{ padding: '14px 20px', minWidth: '160px' }}>Client</th>
                     <th style={{ padding: '14px 20px', minWidth: '150px' }}>Category</th>
@@ -1163,7 +1223,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                   </tr>
                 </thead>
                 <tbody>
-                  {projectList.map((p) => {
+                  {projectList.map((p, index) => {
                     const isInline = inlineEditId === p.id;
 
                     if (isInline) {
@@ -1175,6 +1235,11 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                             borderBottom: '1px solid rgba(200, 255, 61, 0.25)',
                           }}
                         >
+                          {/* Inline Position Number */}
+                          <td style={{ padding: '12px 14px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c8ff3d', fontWeight: 700 }}>
+                            #{index + 1}
+                          </td>
+
                           {/* Inline Project Name & Tags */}
                           <td style={{ padding: '12px 16px' }}>
                             <input
@@ -1389,16 +1454,108 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                       );
                     }
 
+                    const isDragging = draggedIndex === index;
+                    const isDragOver = dragOverIndex === index;
+
                     return (
                       <tr
                         key={p.id}
+                        draggable={!isInline}
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDrop={(e) => handleDrop(e, index)}
+                        onDragEnd={handleDragEnd}
                         style={{
-                          borderBottom: '1px solid rgba(237, 233, 232, 0.06)',
-                          transition: 'background-color 0.15s',
+                          borderBottom: isDragOver ? '2px solid #c8ff3d' : '1px solid rgba(237, 233, 232, 0.06)',
+                          backgroundColor: isDragOver
+                            ? 'rgba(200, 255, 61, 0.1)'
+                            : isDragging
+                            ? 'rgba(255, 255, 255, 0.05)'
+                            : 'transparent',
+                          opacity: isDragging ? 0.4 : 1,
+                          transition: 'background-color 0.15s, opacity 0.15s, border 0.15s',
+                          cursor: 'grab',
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        onMouseEnter={(e) => {
+                          if (!isDragOver && !isDragging) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isDragOver && !isDragging) e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
                       >
+                        {/* Order / Position Drag Handle & Quick Adjust */}
+                        <td style={{ padding: '12px 14px', textAlign: 'center', userSelect: 'none' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <span
+                              title="Drag to reorder position"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'rgba(237, 233, 232, 0.45)',
+                                cursor: 'grab',
+                              }}
+                            >
+                              <GripVertical size={16} />
+                            </span>
+                            <span
+                              style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: '#c8ff3d',
+                                minWidth: '22px',
+                                textAlign: 'center',
+                              }}
+                            >
+                              #{index + 1}
+                            </span>
+                            <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', marginLeft: '2px' }}>
+                              <button
+                                type="button"
+                                disabled={index === 0}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveProjectPosition(index, -1);
+                                }}
+                                title="Move up 1 position"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: '1px',
+                                  cursor: index === 0 ? 'default' : 'pointer',
+                                  color: index === 0 ? 'rgba(255, 255, 255, 0.12)' : 'rgba(237, 233, 232, 0.65)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  lineHeight: 1,
+                                }}
+                              >
+                                <ChevronUp size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={index === projectList.length - 1}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveProjectPosition(index, 1);
+                                }}
+                                title="Move down 1 position"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: '1px',
+                                  cursor: index === projectList.length - 1 ? 'default' : 'pointer',
+                                  color: index === projectList.length - 1 ? 'rgba(255, 255, 255, 0.12)' : 'rgba(237, 233, 232, 0.65)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  lineHeight: 1,
+                                }}
+                              >
+                                <ChevronDown size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        </td>
                         <td style={{ padding: '16px 20px' }}>
                           <div style={{ fontWeight: 600, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span>{p.title}</span>

@@ -197,19 +197,14 @@ export function getStoredProjects() {
       // Purge all dummy projects from client localStorage
       let filtered = parsed.filter((p) => !DUMMY_PROJECT_IDS.includes(p.id));
 
-      // Ensure all 4 original projects exist in the list
+      // Ensure any newly added projects from DEFAULT_PROJECTS exist in the list
       DEFAULT_PROJECTS.forEach((orig) => {
         if (!filtered.some((p) => p.id === orig.id)) {
           filtered.push(orig);
         }
       });
 
-      // Maintain order: zex4u, novohoms, shresthamfoods, ghartakservice first
-      const origIds = DEFAULT_PROJECTS.map((d) => d.id);
-      const topOriginals = DEFAULT_PROJECTS.filter((d) => filtered.some((f) => f.id === d.id));
-      const customProjects = filtered.filter((p) => !origIds.includes(p.id));
-      filtered = [...topOriginals, ...customProjects];
-
+      // Preserve the user's custom saved order in filtered!
       localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
 
       return filtered.map((p) => {
