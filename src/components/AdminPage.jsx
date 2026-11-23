@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BarChart3,
   Users,
@@ -42,7 +42,7 @@ import {
 } from 'lucide-react';
 import aitechLogo from '../assets/aitech-logo-white-neon.png';
 import aitechEmblem from '../assets/aitech-hero-emblem.png';
-import { getStoredProjects, saveStoredProjects, resetProjectsToDefault } from '../data/projectsData';
+import { getStoredProjects, saveStoredProjects, resetProjectsToDefault, STORAGE_KEY } from '../data/projectsData';
 
 export default function AdminPage({ onNavigateHome, onNavigateProjects, onNavigateServices, onOpenContact }) {
   useEffect(() => {
@@ -69,13 +69,13 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
 
   // Sync projects state in real-time across tabs/windows
   useEffect(() => {
-    const handleSync = () => {
-      setProjectList(getStoredProjects());
+    const handleSync = (e) => {
+      if (e.type === 'storage' && e.key === STORAGE_KEY) {
+        setProjectList(getStoredProjects());
+      }
     };
-    window.addEventListener('aitech_projects_changed', handleSync);
     window.addEventListener('storage', handleSync);
     return () => {
-      window.removeEventListener('aitech_projects_changed', handleSync);
       window.removeEventListener('storage', handleSync);
     };
   }, []);
@@ -95,55 +95,78 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
     showToast(message);
   };
 
-  // Drag and drop reordering state
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [dragOverIndex, setDragOverIndex] = useState(null);
+  // Drag and drop reordering ref (avoids state re-renders during dragging)
+  const dragSourceIndexRef = useRef(null);
 
-  const handleDragStart = (e, index) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', index.toString());
-  };
-
-  const handleDragOver = (e, index) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverIndex !== index) {
-      setDragOverIndex(index);
-    }
-  };
-
-  const handleDrop = (e, targetIndex) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === targetIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
-      return;
-    }
-
-    const updated = [...projectList];
-    const [movedItem] = updated.splice(draggedIndex, 1);
-    updated.splice(targetIndex, 0, movedItem);
-
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-    saveProjects(updated, `⇅ Reordered "${movedItem.title}" to position #${targetIndex + 1}!`);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
+  const reorderProject = (fromIndex, toIndex) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+    setProjectList((prevList) => {
+      if (fromIndex >= prevList.length || toIndex >= prevList.length) return prevList;
+      const updated = [...prevList];
+      const [movedItem] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, movedItem);
+      saveStoredProjects(updated);
+      showToast(`⇅ Moved "${movedItem.title}" to position #${toIndex + 1}!`);
+      return updated;
+    });
   };
 
   const moveProjectPosition = (index, direction) => {
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= projectList.length) return;
+    reorderProject(index, targetIndex);
+  };
 
-    const updated = [...projectList];
-    const [movedItem] = updated.splice(index, 1);
-    updated.splice(targetIndex, 0, movedItem);
+  const handleDragStart = (e, index) => {
+    dragSourceIndexRef.current = index;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+    setTimeout(() => {
+      if (e.target) e.target.style.opacity = '0.35';
+    }, 0);
+  };
 
-    saveProjects(updated, `⇅ Moved "${movedItem.title}" ${direction < 0 ? 'up' : 'down'} to position #${targetIndex + 1}!`);
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    if (dragSourceIndexRef.current !== null && dragSourceIndexRef.current !== index) {
+      e.currentTarget.style.borderTop = '3px solid #c8ff3d';
+      e.currentTarget.style.backgroundColor = 'rgba(200, 255, 61, 0.08)';
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.currentTarget.style.borderTop = '';
+    e.currentTarget.style.backgroundColor = '';
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    e.currentTarget.style.borderTop = '';
+    e.currentTarget.style.backgroundColor = '';
+    const rawSource = e.dataTransfer.getData('text/plain');
+    const sourceIndex = dragSourceIndexRef.current !== null
+      ? dragSourceIndexRef.current
+      : (rawSource ? parseInt(rawSource, 10) : null);
+
+    dragSourceIndexRef.current = null;
+    if (sourceIndex !== null && !isNaN(sourceIndex) && sourceIndex !== targetIndex) {
+      reorderProject(sourceIndex, targetIndex);
+    }
+  };
+
+  const handleDragEnd = (e) => {
+    if (e.target) e.target.style.opacity = '1';
+    dragSourceIndexRef.current = null;
+    document.querySelectorAll('.admin-project-row').forEach((row) => {
+      row.style.borderTop = '';
+      row.style.backgroundColor = '';
+      row.style.opacity = '1';
+    });
   };
 
   // Inquiries / Leads state
@@ -1098,7 +1121,7 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                 </span>
               </div>
               <p style={{ fontSize: '13px', color: 'rgba(237, 233, 232, 0.6)', margin: '4px 0 0 0' }}>
-                Drag rows by the handle (<span style={{ color: '#c8ff3d', fontWeight: 600 }}>⠿</span>) or use the <span style={{ color: '#c8ff3d', fontWeight: 600 }}>↑ / ↓</span> buttons to set the exact showcase order on the live website.
+                Reorder projects using the drag handle (<span style={{ color: '#c8ff3d', fontWeight: 600 }}>⠿</span>), the <span style={{ color: '#c8ff3d', fontWeight: 600 }}>▲ / ▼</span> buttons, or the <span style={{ color: '#c8ff3d', fontWeight: 600 }}># Rank</span> selector to set their exact showcase order live.
               </p>
             </div>
 
@@ -1209,9 +1232,9 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                       textTransform: 'uppercase',
                     }}
                   >
-                    <th style={{ padding: '14px 14px', width: '90px', textAlign: 'center' }}>
+                    <th style={{ padding: '14px 12px', width: '130px', textAlign: 'center' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <ArrowUpDown size={11} /> Order
+                        <ArrowUpDown size={11} /> Order Rank
                       </span>
                     </th>
                     <th style={{ padding: '14px 20px', minWidth: '240px' }}>Project Name</th>
@@ -1454,38 +1477,33 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                       );
                     }
 
-                    const isDragging = draggedIndex === index;
-                    const isDragOver = dragOverIndex === index;
-
                     return (
                       <tr
                         key={p.id}
+                        className="admin-project-row"
                         draggable={!isInline}
                         onDragStart={(e) => handleDragStart(e, index)}
-                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragOver={handleDragOver}
+                        onDragEnter={(e) => handleDragEnter(e, index)}
+                        onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, index)}
                         onDragEnd={handleDragEnd}
                         style={{
-                          borderBottom: isDragOver ? '2px solid #c8ff3d' : '1px solid rgba(237, 233, 232, 0.06)',
-                          backgroundColor: isDragOver
-                            ? 'rgba(200, 255, 61, 0.1)'
-                            : isDragging
-                            ? 'rgba(255, 255, 255, 0.05)'
-                            : 'transparent',
-                          opacity: isDragging ? 0.4 : 1,
-                          transition: 'background-color 0.15s, opacity 0.15s, border 0.15s',
+                          borderBottom: '1px solid rgba(237, 233, 232, 0.06)',
+                          transition: 'background-color 0.15s, opacity 0.15s',
                           cursor: 'grab',
                         }}
                         onMouseEnter={(e) => {
-                          if (!isDragOver && !isDragging) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
                         }}
                         onMouseLeave={(e) => {
-                          if (!isDragOver && !isDragging) e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.backgroundColor = 'transparent';
                         }}
                       >
-                        {/* Order / Position Drag Handle & Quick Adjust */}
-                        <td style={{ padding: '12px 14px', textAlign: 'center', userSelect: 'none' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        {/* Order / Position Drag Handle & Controls */}
+                        <td style={{ padding: '10px 12px', textAlign: 'center', userSelect: 'none' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            {/* Drag Handle */}
                             <span
                               title="Drag to reorder position"
                               style={{
@@ -1494,64 +1512,125 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
                                 justifyContent: 'center',
                                 color: 'rgba(237, 233, 232, 0.45)',
                                 cursor: 'grab',
+                                padding: '4px 2px',
                               }}
                             >
                               <GripVertical size={16} />
                             </span>
-                            <span
+
+                            {/* Direct Rank Select Dropdown */}
+                            <select
+                              value={index}
+                              draggable={false}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                reorderProject(index, parseInt(e.target.value, 10));
+                              }}
+                              title="Select position rank"
                               style={{
+                                backgroundColor: 'rgba(200, 255, 61, 0.1)',
+                                border: '1px solid rgba(200, 255, 61, 0.35)',
+                                color: '#c8ff3d',
                                 fontFamily: 'var(--font-mono)',
                                 fontSize: '11px',
                                 fontWeight: 700,
-                                color: '#c8ff3d',
-                                minWidth: '22px',
-                                textAlign: 'center',
+                                padding: '3px 4px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                outline: 'none',
                               }}
                             >
-                              #{index + 1}
-                            </span>
-                            <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', marginLeft: '2px' }}>
+                              {projectList.map((_, i) => (
+                                <option key={i} value={i} style={{ backgroundColor: '#141414', color: '#ffffff' }}>
+                                  #{i + 1}
+                                </option>
+                              ))}
+                            </select>
+
+                            {/* Up & Down Arrow Buttons */}
+                            <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px' }}>
                               <button
                                 type="button"
                                 disabled={index === 0}
+                                draggable={false}
+                                onMouseDown={(e) => e.stopPropagation()}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   moveProjectPosition(index, -1);
                                 }}
-                                title="Move up 1 position"
+                                title={index === 0 ? 'Already at top' : `Move up to #${index}`}
                                 style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  padding: '1px',
-                                  cursor: index === 0 ? 'default' : 'pointer',
-                                  color: index === 0 ? 'rgba(255, 255, 255, 0.12)' : 'rgba(237, 233, 232, 0.65)',
-                                  display: 'flex',
+                                  display: 'inline-flex',
                                   alignItems: 'center',
-                                  lineHeight: 1,
+                                  justifyContent: 'center',
+                                  width: '22px',
+                                  height: '17px',
+                                  backgroundColor: index === 0 ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.08)',
+                                  border: '1px solid rgba(237, 233, 232, 0.15)',
+                                  borderRadius: '3px',
+                                  cursor: index === 0 ? 'not-allowed' : 'pointer',
+                                  color: index === 0 ? 'rgba(255, 255, 255, 0.15)' : '#ede9e8',
+                                  padding: 0,
+                                  transition: 'all 0.12s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (index > 0) {
+                                    e.currentTarget.style.backgroundColor = '#c8ff3d';
+                                    e.currentTarget.style.color = '#000000';
+                                    e.currentTarget.style.borderColor = '#c8ff3d';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (index > 0) {
+                                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.currentTarget.style.color = '#ede9e8';
+                                    e.currentTarget.style.borderColor = 'rgba(237, 233, 232, 0.15)';
+                                  }
                                 }}
                               >
-                                <ChevronUp size={13} />
+                                <ChevronUp size={12} strokeWidth={2.5} />
                               </button>
                               <button
                                 type="button"
                                 disabled={index === projectList.length - 1}
+                                draggable={false}
+                                onMouseDown={(e) => e.stopPropagation()}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   moveProjectPosition(index, 1);
                                 }}
-                                title="Move down 1 position"
+                                title={index === projectList.length - 1 ? 'Already at bottom' : `Move down to #${index + 2}`}
                                 style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  padding: '1px',
-                                  cursor: index === projectList.length - 1 ? 'default' : 'pointer',
-                                  color: index === projectList.length - 1 ? 'rgba(255, 255, 255, 0.12)' : 'rgba(237, 233, 232, 0.65)',
-                                  display: 'flex',
+                                  display: 'inline-flex',
                                   alignItems: 'center',
-                                  lineHeight: 1,
+                                  justifyContent: 'center',
+                                  width: '22px',
+                                  height: '17px',
+                                  backgroundColor: index === projectList.length - 1 ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.08)',
+                                  border: '1px solid rgba(237, 233, 232, 0.15)',
+                                  borderRadius: '3px',
+                                  cursor: index === projectList.length - 1 ? 'not-allowed' : 'pointer',
+                                  color: index === projectList.length - 1 ? 'rgba(255, 255, 255, 0.15)' : '#ede9e8',
+                                  padding: 0,
+                                  transition: 'all 0.12s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (index < projectList.length - 1) {
+                                    e.currentTarget.style.backgroundColor = '#c8ff3d';
+                                    e.currentTarget.style.color = '#000000';
+                                    e.currentTarget.style.borderColor = '#c8ff3d';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (index < projectList.length - 1) {
+                                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.currentTarget.style.color = '#ede9e8';
+                                    e.currentTarget.style.borderColor = 'rgba(237, 233, 232, 0.15)';
+                                  }
                                 }}
                               >
-                                <ChevronDown size={13} />
+                                <ChevronDown size={12} strokeWidth={2.5} />
                               </button>
                             </div>
                           </div>
