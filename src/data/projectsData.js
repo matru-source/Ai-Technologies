@@ -1,5 +1,6 @@
 // Centralized Real-Time Projects Data Store
-export const STORAGE_KEY = 'aitech_admin_projects';
+export const STORAGE_KEY = 'aitech_portfolio_showcase_v1';
+const LEGACY_STORAGE_KEY = 'aitech_admin_projects';
 
 export const DEFAULT_PROJECTS = [
   {
@@ -190,7 +191,10 @@ const DUMMY_PROJECT_IDS = [
 export function getStoredProjects() {
   if (typeof window === 'undefined') return DEFAULT_PROJECTS;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    }
     if (!raw) return DEFAULT_PROJECTS;
     let parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -204,9 +208,7 @@ export function getStoredProjects() {
         }
       });
 
-      // Preserve the user's custom saved order in filtered!
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-
+      // Pure read: return preserved custom order with fallback fields
       return filtered.map((p) => {
         const defaultMatch = DEFAULT_PROJECTS.find((d) => d.id === p.id);
         return {

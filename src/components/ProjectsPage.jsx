@@ -31,8 +31,12 @@ export default function ProjectsPage({ onOpenContact, onNavigateHome, onNavigate
     window.scrollTo({ top: 0, behavior: 'instant' });
     document.title = 'AI Technologies — Featured Projects & Portfolio';
 
-    const handleSync = () => {
-      setProjects(getStoredProjects());
+    const handleSync = (e) => {
+      if (e?.detail && Array.isArray(e.detail)) {
+        setProjects(e.detail);
+      } else {
+        setProjects(getStoredProjects());
+      }
     };
     window.addEventListener('aitech_projects_changed', handleSync);
     window.addEventListener('storage', handleSync);

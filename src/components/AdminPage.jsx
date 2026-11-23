@@ -67,19 +67,6 @@ export default function AdminPage({ onNavigateHome, onNavigateProjects, onNaviga
   // Portfolio items in admin state (synchronized with live site and localStorage)
   const [projectList, setProjectList] = useState(getStoredProjects);
 
-  // Sync projects state in real-time across tabs/windows
-  useEffect(() => {
-    const handleSync = (e) => {
-      if (e.type === 'storage' && e.key === STORAGE_KEY) {
-        setProjectList(getStoredProjects());
-      }
-    };
-    window.addEventListener('storage', handleSync);
-    return () => {
-      window.removeEventListener('storage', handleSync);
-    };
-  }, []);
-
   // Real-time toast feedback state
   const [realtimeToast, setRealtimeToast] = useState(null);
   const showToast = (message) => {
